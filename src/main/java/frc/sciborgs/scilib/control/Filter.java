@@ -1,23 +1,44 @@
 package frc.sciborgs.scilib.control;
 
-import edu.wpi.first.math.filter.LinearFilter;
+import java.util.function.DoublePredicate;
+import java.util.function.DoubleUnaryOperator;
 
-public interface Filter {
-    public double calculate(double measurement);
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.LinearFilter;
+import edu.wpi.first.math.filter.MedianFilter;
+import edu.wpi.first.math.filter.SlewRateLimiter;
+
+public interface Filter extends DoubleUnaryOperator {
+
+    public default Filter add(Filter other) {
+        return measurement -> applyAsDouble(measurement) + other.applyAsDouble(measurement);
+    }
+
+    public default Filter sub(Filter other) {
+        return measurement -> applyAsDouble(measurement) - other.applyAsDouble(measurement);
+    }
+
+    public default DoublePredicate eval(DoublePredicate predicate) {
+        return measurement -> predicate.test(applyAsDouble(measurement));
+    }
 
     public static Filter fromLinearFilter(LinearFilter filter) {
         return measurement -> filter.calculate(measurement);
     }
 
-    public default Filter with(Filter other) {
-        return measurement -> calculate(other.calculate(measurement));
+    public static Filter fromMedianFilter(MedianFilter filter) {
+        return measurement -> filter.calculate(measurement);
     }
 
-    public default Filter add(Filter other) {
-        return measurement -> calculate(measurement) + other.calculate(measurement);
+    public static Filter fromSlewRateLimiter(SlewRateLimiter filter) {
+        return measurement -> filter.calculate(measurement);
     }
 
-    public default Filter sub(Filter other) {
-        return measurement -> calculate(measurement) - other.calculate(measurement);
+    public static Filter clamp(double low, double high) {
+        return measurement -> MathUtil.clamp(measurement, low, high);
+    }
+
+    public static Filter deadband(double value, double deadband) {
+        return measurement -> MathUtil.applyDeadband(value, deadband);
     }
 }
