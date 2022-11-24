@@ -8,7 +8,7 @@ plugins {
 group = 'frc.sciborgs'
 
 sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_11
 
 // Set to true to use debug for JNI.
 wpi.java.debugJni = false
