@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/SciBorgs/SciLib/actions/workflows/main.yml/badge.svg)](https://github.com/SciBorgs/SciLib/actions/workflows/main.yml)
 
-SciLib is a library by FRC team 1155 intended for use with [WPILibJ](https://github.com/wpilibsuite/allwpilib). It is designed to standardize and simplify some tedius aspects of writing robot code.
+SciLib is a library by FRC team 1155 intended for use with [WPILibJ](https://github.com/wpilibsuite/allwpilib). It is designed to standardize and simplify some tedious aspects of writing robot code.
 
 *It is currently under development.*
 
