@@ -2,6 +2,7 @@ package frc.sciborgs.scilib.control;
 
 import java.util.function.DoubleBinaryOperator;
 
+import edu.wpi.first.math.controller.BangBangController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 
@@ -22,6 +23,10 @@ public interface Controller extends DoubleBinaryOperator {
 
     public static Controller fromFF(SimpleMotorFeedforward ff) {
         return (setpoint, measurement) -> ff.calculate(setpoint);
+    }
+
+    public static Controller fromBangBang(BangBangController bb) {
+        return (setpoint, measurement) -> bb.calculate(measurement, setpoint);
     }
 
     public default Controller filterOutput(Filter filter) {
