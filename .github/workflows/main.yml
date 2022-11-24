@@ -7,7 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: wpilib/roborio-cross-ubuntu:2022-20.04
+    # add image version back when wpilib 2023 comes out of beta
+    container: wpilib/roborio-cross-ubuntu
 
     steps:
     - uses: actions/checkout@v2
