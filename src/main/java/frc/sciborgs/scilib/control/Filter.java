@@ -8,37 +8,66 @@ import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 
+/**
+ * Interface representing a transformation on a stream of doubles, and providing
+ * operations on those transformations. This interface also includes static factory
+ * methods to enable compatibilty with classes defined in WPILib.
+ * @see Controller
+ */
+@FunctionalInterface
 public interface Filter extends DoubleUnaryOperator {
+
+    /*
+     * Rename method from applyAsDouble to calculate
+     */
+
+    double calculate(double value);
+    @Override
+    default double applyAsDouble(double value) {
+        return this.calculate(value);
+    }
     
-    public default Filter add(Filter other) {
+    /*
+     * Operations with another filter.
+     */
+
+    default Filter add(Filter other) {
         return measurement -> applyAsDouble(measurement) + other.applyAsDouble(measurement);
     }
 
-    public default Filter sub(Filter other) {
+    default Filter sub(Filter other) {
         return measurement -> applyAsDouble(measurement) - other.applyAsDouble(measurement);
     }
 
-    public default DoublePredicate eval(DoublePredicate predicate) {
+    default DoublePredicate eval(DoublePredicate predicate) {
         return measurement -> predicate.test(applyAsDouble(measurement));
     }
 
-    public static Filter fromLinearFilter(LinearFilter filter) {
+    /*
+     * Factory methods for adapting WPILib-provided filters.
+     */
+
+    static Filter fromLinearFilter(LinearFilter filter) {
         return measurement -> filter.calculate(measurement);
     }
 
-    public static Filter fromMedianFilter(MedianFilter filter) {
+    static Filter fromMedianFilter(MedianFilter filter) {
         return measurement -> filter.calculate(measurement);
     }
 
-    public static Filter fromSlewRateLimiter(SlewRateLimiter filter) {
+    static Filter fromSlewRateLimiter(SlewRateLimiter filter) {
         return measurement -> filter.calculate(measurement);
     }
 
-    public static Filter clamp(double low, double high) {
+    /*
+     * Operations on the filter.
+     */
+
+    static Filter clamp(double low, double high) {
         return measurement -> MathUtil.clamp(measurement, low, high);
     }
 
-    public static Filter deadband(double value, double deadband) {
+    static Filter deadband(double value, double deadband) {
         return measurement -> MathUtil.applyDeadband(value, deadband);
     }
 }

@@ -2,15 +2,13 @@ package frc.sciborgs.scilib.math;
 
 import edu.wpi.first.wpilibj.Timer;
 
-public class DeltaTime {
-
-    private Delta slot;
+public class DeltaTime extends Delta {
 
     public DeltaTime() {
-        slot = new Delta(Timer.getFPGATimestamp());
+        super(Timer.getFPGATimestamp());
     }
 
     public double update() {
-        return slot.update(Timer.getFPGATimestamp());
+        return super.update(Timer.getFPGATimestamp());
     }
 }

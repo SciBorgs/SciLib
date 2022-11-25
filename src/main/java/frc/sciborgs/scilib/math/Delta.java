@@ -8,8 +8,8 @@ public class Delta {
     }
 
     public double update(double newValue) {
-        double old = newValue - last;
+        double delta = newValue - last;
         last = newValue;
-        return old;
+        return delta;
     }
 }
