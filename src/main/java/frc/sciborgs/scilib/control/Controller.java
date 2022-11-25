@@ -1,18 +1,8 @@
 package frc.sciborgs.scilib.control;
 
-import java.util.ResourceBundle.Control;
 import java.util.function.DoubleBinaryOperator;
 
-import com.revrobotics.CANSparkMax;
-
-import edu.wpi.first.math.controller.BangBangController;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import frc.sciborgs.scilib.units.Position;
 import frc.sciborgs.scilib.units.Unit;
-import frc.sciborgs.scilib.units.Velocity;
 
 public interface Controller<T extends Unit> extends DoubleBinaryOperator {
 

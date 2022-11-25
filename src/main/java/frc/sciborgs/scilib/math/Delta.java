@@ -1,13 +1,9 @@
 package frc.sciborgs.scilib.math;
 
-/**
- * Slot is a horrible class name,
- * it just stores the last inputted double
- */
-public class Slot {
+public class Delta {
     private double last;
 
-    public Slot(double initialValue) {
+    public Delta(double initialValue) {
         last = initialValue;
     }
 

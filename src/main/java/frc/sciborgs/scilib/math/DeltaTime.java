@@ -4,10 +4,10 @@ import edu.wpi.first.wpilibj.Timer;
 
 public class DeltaTime {
 
-    private Slot slot;
+    private Delta slot;
 
     public DeltaTime() {
-        slot = new Slot(Timer.getFPGATimestamp());
+        slot = new Delta(Timer.getFPGATimestamp());
     }
 
     public double update() {
