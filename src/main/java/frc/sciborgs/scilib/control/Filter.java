@@ -1,13 +1,18 @@
 package frc.sciborgs.scilib.control;
 
+import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoublePredicate;
 import java.util.function.DoubleSupplier;
 import java.util.function.DoubleUnaryOperator;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import frc.sciborgs.scilib.math.Counter;
+import frc.sciborgs.scilib.math.Delta;
+import frc.sciborgs.scilib.math.DeltaTime;
 
 /**
  * Interface representing a transformation on a stream of doubles, and providing
@@ -92,42 +97,25 @@ public interface Filter extends DoubleUnaryOperator {
     }
 
     /**
-     * Creates a derivative filter that differentiates with respect to values
-     * provided by the time supplier.
-     * 
-     * @param tSupplier the supplier of time (or other system variable)
-     * @param delay     number of samples to look back
-     * @return a filter representing the derivative with respect to time
+     * Creates a derivative filter with respect to system time
+     * @param initialValue the starting value
+     * @return a derivative filter
      */
-    default Filter Dt(DoubleSupplier tSupplier, int delay) {
-        UpdateDelayFilter delayedU = new UpdateDelayFilter(delay); // value filter
-        UpdateDelayFilter delayedT = new UpdateDelayFilter(delay); // time filter
-        // At least two samples needed for derivative
-        return value -> {
-            double time = tSupplier.getAsDouble();
-            if (delayedT.getNumSamples() == 0) {
-                delayedU.calculate(value);
-                delayedT.calculate(time);
-                return Double.NaN;
-            }
-            return (value - delayedU.calculate(value)) / (time - delayedT.calculate(time));
-        };
+    static Filter DT(double initialValue) {
+        Delta du = new Delta(initialValue);
+        DeltaTime dt = new DeltaTime();
+        return value -> du.update(value) / dt.update();
     }
 
-    default Filter It(DoubleSupplier tSupplier) {
-        return new Filter() {
-            double timePrev = Double.NaN;
-            double integrator = 0;
-
-            public double calculate(double value) {
-                double time = tSupplier.getAsDouble();
-                if (!Double.isNaN(timePrev * value)) {
-                    integrator += value * (time - timePrev);
-                }
-                timePrev = time;
-                return integrator;
-            }
-        };
+    /**
+     * Creates an integral filter with respect to system time
+     * @param initialValue the starting value
+     * @return an integral filter
+     */
+    static Filter IT(double initialValue) {
+        Counter integrator = new Counter(initialValue);
+        DeltaTime dt = new DeltaTime();
+        return value -> integrator.increase(value * dt.update());
     }
 
 }
