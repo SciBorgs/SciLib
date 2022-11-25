@@ -7,14 +7,17 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import frc.sciborgs.scilib.units.Position;
+import frc.sciborgs.scilib.units.Unit;
+import frc.sciborgs.scilib.units.Velocity;
 
-public interface Filter extends DoubleUnaryOperator {
-
-    public default Filter add(Filter other) {
+public interface Filter<T extends Unit> extends DoubleUnaryOperator {
+    
+    public default Filter<T> add(Filter<T> other) {
         return measurement -> applyAsDouble(measurement) + other.applyAsDouble(measurement);
     }
 
-    public default Filter sub(Filter other) {
+    public default Filter<T> sub(Filter<T> other) {
         return measurement -> applyAsDouble(measurement) - other.applyAsDouble(measurement);
     }
 
@@ -22,23 +25,23 @@ public interface Filter extends DoubleUnaryOperator {
         return measurement -> predicate.test(applyAsDouble(measurement));
     }
 
-    public static Filter fromLinearFilter(LinearFilter filter) {
+    public static <T extends Unit> Filter<T> fromLinearFilter(LinearFilter filter) {
         return measurement -> filter.calculate(measurement);
     }
 
-    public static Filter fromMedianFilter(MedianFilter filter) {
+    public static <T extends Unit> Filter<T> fromMedianFilter(MedianFilter filter) {
         return measurement -> filter.calculate(measurement);
     }
 
-    public static Filter fromSlewRateLimiter(SlewRateLimiter filter) {
+    public static <T extends Unit> Filter<T> fromSlewRateLimiter(SlewRateLimiter filter) {
         return measurement -> filter.calculate(measurement);
     }
 
-    public static Filter clamp(double low, double high) {
+    public static <T extends Unit> Filter<T> clamp(double low, double high) {
         return measurement -> MathUtil.clamp(measurement, low, high);
     }
 
-    public static Filter deadband(double value, double deadband) {
+    public static <T extends Unit> Filter<T> deadband(double value, double deadband) {
         return measurement -> MathUtil.applyDeadband(value, deadband);
     }
 }
