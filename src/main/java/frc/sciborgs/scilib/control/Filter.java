@@ -32,15 +32,19 @@ public interface Filter extends DoubleUnaryOperator {
      */
 
     default Filter add(Filter other) {
-        return measurement -> applyAsDouble(measurement) + other.applyAsDouble(measurement);
+        return measurement -> calculate(measurement) + other.calculate(measurement);
     }
 
     default Filter sub(Filter other) {
-        return measurement -> applyAsDouble(measurement) - other.applyAsDouble(measurement);
+        return measurement -> calculate(measurement) - other.calculate(measurement);
     }
 
-    default DoublePredicate eval(DoublePredicate predicate) {
-        return measurement -> predicate.test(applyAsDouble(measurement));
+    default Filter mul(Filter other) {
+        return measurement -> calculate(measurement) * other.calculate(measurement);
+    }
+
+    default Filter div(Filter other) {
+        return measurement -> calculate(measurement) / other.calculate(measurement);
     }
 
     /*
@@ -63,6 +67,10 @@ public interface Filter extends DoubleUnaryOperator {
      * Operations on the filter.
      */
 
+    static Filter scale(double alpha) {
+        return measurement -> alpha * measurement;
+    }
+
     static Filter clamp(double low, double high) {
         return measurement -> MathUtil.clamp(measurement, low, high);
     }
@@ -70,4 +78,9 @@ public interface Filter extends DoubleUnaryOperator {
     static Filter deadband(double value, double deadband) {
         return measurement -> MathUtil.applyDeadband(value, deadband);
     }
+
+    default DoublePredicate eval(DoublePredicate predicate) {
+        return measurement -> predicate.test(calculate(measurement));
+    }
+
 }
