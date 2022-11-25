@@ -2,9 +2,7 @@ package frc.sciborgs.scilib.control;
 
 import java.util.function.DoubleBinaryOperator;
 
-import frc.sciborgs.scilib.units.Unit;
-
-public abstract class Controller<T extends Unit> {
+public abstract class Controller {
     
     private double allowableError;
 
@@ -16,13 +14,55 @@ public abstract class Controller<T extends Unit> {
     private double setpoint;
     private double output;
 
-    public static Controller<Unit> from(DoubleBinaryOperator op) {
-        return new Controller<Unit>() {
+    public Controller() {
+        this(0, 0);
+    }
+
+    public Controller(double allowableError, double startingValue) {
+        this.allowableError = allowableError;
+
+        measuremenFilter = Filter.identity();
+        setpointFilter = Filter.identity();
+        outputFilter = Filter.identity();
+
+        measurement = startingValue;
+        setpoint = startingValue;
+        output = startingValue;
+    }
+
+    public static Controller from(DoubleBinaryOperator op) {
+        return new Controller() {
             @Override
             public double apply(double measurement, double setpoint) {
                 return op.applyAsDouble(measurement, setpoint);
             }
         };
+    }
+
+    public static Controller getPID(double kP, double kI, double kD) {
+        Filter integral = Filter.IT(0);
+        Filter derivative = Filter.DT(0);
+        return from(
+                (measurement, setpoint) -> {
+                    double error = setpoint - measurement;
+                    return kP * error + kI * integral.calculate(error) + kD * derivative.calculate(error);
+                });
+    }
+
+    public static Controller getVelocityFF(double kS, double kV, double kA) {
+        Filter acceleration = Filter.DT(0);
+        return from(
+                (measurement, _setpoint) -> {
+                    return kS * Math.signum(measurement) + kV * measurement + kA * acceleration.calculate(measurement);
+                });
+    }
+
+    public static Controller getPositionFF(double kS, double kV, double kA) {
+        Filter velocity = Filter.DT(0);
+        return from(
+                (measurement, _setpoint) -> {
+                    return kS * Math.signum(measurement) + kV * velocity.calculate(measurement);
+                });
     }
 
     public final double calculate(double measurement, double setpoint) {
@@ -34,37 +74,37 @@ public abstract class Controller<T extends Unit> {
 
     public abstract double apply(double measurement, double setpoint);
 
-    public Controller<T> add(DoubleBinaryOperator other) {
-        Controller<T> t = this;
-        return new Controller<T>() {
+    public Controller add(Controller other) {
+        Controller t = this;
+        return new Controller() {
             @Override
             public double apply(double measurement, double setpoint) {
-                return t.apply(measurement, setpoint) + other.applyAsDouble(measurement, setpoint);
+                return t.apply(measurement, setpoint) + other.calculate(measurement, setpoint);
             }
         };
     }
 
-    public Controller<T> sub(DoubleBinaryOperator other) {
-        Controller<T> t = this;
-        return new Controller<T>() {
+    public Controller sub(Controller other) {
+        Controller t = this;
+        return new Controller() {
             @Override
             public double apply(double measurement, double setpoint) {
-                return t.apply(measurement, setpoint) - other.applyAsDouble(measurement, setpoint);
+                return t.apply(measurement, setpoint) - other.calculate(measurement, setpoint);
             }
         };
     }
 
-    public Controller<T> filterOutput(Filter filter) {
+    public Controller addOutputFilter(Filter filter) {
         outputFilter = filter;
         return this;
     }
 
-    public Controller<T> filterSetpoint(Filter filter) {
+    public Controller addSetpointFilter(Filter filter) {
         setpointFilter = filter;
         return this;
     }
 
-    public Controller<T> filterMeasurement(Filter filter) {
+    public Controller addMeasurementFilter(Filter filter) {
         measuremenFilter = filter;
         return this;
     }
