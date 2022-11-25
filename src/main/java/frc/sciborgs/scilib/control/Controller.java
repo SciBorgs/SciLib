@@ -66,9 +66,9 @@ public abstract class Controller {
     }
 
     public final double calculate(double measurement, double setpoint) {
-        this.measurement = measuremenFilter.applyAsDouble(measurement);
-        this.setpoint = setpointFilter.applyAsDouble(setpoint);
-        this.output = outputFilter.applyAsDouble(apply(measurement, setpoint));
+        this.measurement = measuremenFilter.calculate(measurement);
+        this.setpoint = setpointFilter.calculate(setpoint);
+        this.output = outputFilter.calculate(apply(measurement, setpoint));
         return output;
     }
 
@@ -95,17 +95,17 @@ public abstract class Controller {
     }
 
     public Controller addOutputFilter(Filter filter) {
-        outputFilter = filter;
+        outputFilter = outputFilter.andThen(filter);
         return this;
     }
 
     public Controller addSetpointFilter(Filter filter) {
-        setpointFilter = filter;
+        setpointFilter = setpointFilter.andThen(filter);
         return this;
     }
 
     public Controller addMeasurementFilter(Filter filter) {
-        measuremenFilter = filter;
+        measuremenFilter = measuremenFilter.andThen(filter);
         return this;
     }
 

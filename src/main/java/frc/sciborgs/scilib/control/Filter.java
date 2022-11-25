@@ -1,12 +1,8 @@
 package frc.sciborgs.scilib.control;
 
-import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoublePredicate;
-import java.util.function.DoubleSupplier;
-import java.util.function.DoubleUnaryOperator;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -23,7 +19,7 @@ import frc.sciborgs.scilib.math.DeltaTime;
  * @see Controller
  */
 @FunctionalInterface
-public interface Filter extends DoubleUnaryOperator {
+public interface Filter {
 
     static Filter identity() {
         return v -> v;
@@ -35,29 +31,32 @@ public interface Filter extends DoubleUnaryOperator {
 
     double calculate(double value);
 
-    @Override
-    default double applyAsDouble(double value) {
-        return this.calculate(value);
-    }
-
     /*
      * Operations with another filter.
      */
 
+    default Filter compose(Filter before) {
+        return value -> calculate(before.calculate(value));
+    }
+
+    default Filter andThen(Filter after) {
+        return value -> after.calculate(calculate(value));
+    }
+
     default Filter add(Filter other) {
-        return measurement -> calculate(measurement) + other.calculate(measurement);
+        return value -> calculate(value) + other.calculate(value);
     }
 
     default Filter sub(Filter other) {
-        return measurement -> calculate(measurement) - other.calculate(measurement);
+        return value -> calculate(value) - other.calculate(value);
     }
 
     default Filter mul(Filter other) {
-        return measurement -> calculate(measurement) * other.calculate(measurement);
+        return value -> calculate(value) * other.calculate(value);
     }
 
     default Filter div(Filter other) {
-        return measurement -> calculate(measurement) / other.calculate(measurement);
+        return value -> calculate(value) / other.calculate(value);
     }
 
     /*
@@ -65,15 +64,15 @@ public interface Filter extends DoubleUnaryOperator {
      */
 
     static Filter fromLinearFilter(LinearFilter filter) {
-        return measurement -> filter.calculate(measurement);
+        return value -> filter.calculate(value);
     }
 
     static Filter fromMedianFilter(MedianFilter filter) {
-        return measurement -> filter.calculate(measurement);
+        return value -> filter.calculate(value);
     }
 
     static Filter fromSlewRateLimiter(SlewRateLimiter filter) {
-        return measurement -> filter.calculate(measurement);
+        return value -> filter.calculate(value);
     }
 
     /*
@@ -81,19 +80,19 @@ public interface Filter extends DoubleUnaryOperator {
      */
 
     static Filter scale(double alpha) {
-        return measurement -> alpha * measurement;
+        return value -> alpha * value;
     }
 
     static Filter clamp(double low, double high) {
-        return measurement -> MathUtil.clamp(measurement, low, high);
+        return value -> MathUtil.clamp(value, low, high);
     }
 
-    static Filter deadband(double value, double deadband) {
-        return measurement -> MathUtil.applyDeadband(value, deadband);
+    static Filter deadband(double deadband) {
+        return value -> MathUtil.applyDeadband(value, deadband);
     }
 
     default DoublePredicate eval(DoublePredicate predicate) {
-        return measurement -> predicate.test(calculate(measurement));
+        return value -> predicate.test(calculate(value));
     }
 
     /**
