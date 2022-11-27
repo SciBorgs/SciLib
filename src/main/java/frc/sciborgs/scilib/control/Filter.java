@@ -106,7 +106,7 @@ public interface Filter {
      * @param initialValue the starting value
      * @return a derivative filter
      */
-    static Filter D_t(double initialValue) {
+    static Filter Dt(double initialValue) {
         Delta du = new Delta(initialValue);
         DiffTimer dt = new DiffTimer();
         return value -> du.update(value) / dt.reset();
@@ -118,6 +118,7 @@ public interface Filter {
      * @return an integral filter
      */
     static Filter I_t(double initialValue) {
+    static Filter It(double initialValue) {
         Counter integrator = new Counter(initialValue);
         DiffTimer dt = new DiffTimer();
         return value -> integrator.increase(value * dt.reset());

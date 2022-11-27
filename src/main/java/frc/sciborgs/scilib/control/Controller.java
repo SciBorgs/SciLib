@@ -40,8 +40,8 @@ public abstract class Controller {
     }
 
     public static Controller getPID(double kP, double kI, double kD) {
-        Filter integral = Filter.I_t(0);
-        Filter derivative = Filter.D_t(0);
+        Filter integral = Filter.It(0);
+        Filter derivative = Filter.Dt(0);
         return from(
                 (measurement, setpoint) -> {
                     double error = setpoint - measurement;
@@ -50,7 +50,7 @@ public abstract class Controller {
     }
 
     public static Controller getVelocityFF(double kS, double kV, double kA) {
-        Filter acceleration = Filter.D_t(0);
+        Filter acceleration = Filter.Dt(0);
         return from(
                 (measurement, _setpoint) -> {
                     return kS * Math.signum(measurement) + kV * measurement + kA * acceleration.calculate(measurement);
@@ -58,7 +58,7 @@ public abstract class Controller {
     }
 
     public static Controller getPositionFF(double kS, double kV, double kA) {
-        Filter velocity = Filter.I_t(0);
+        Filter velocity = Filter.Dt(0);
         return from(
                 (measurement, _setpoint) -> {
                     return kS * Math.signum(measurement) + kV * velocity.calculate(measurement);
