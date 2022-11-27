@@ -21,8 +21,8 @@ class FilterTest {
     // void derivativeAndIntegralAreInversesTest() {
     //     assert HAL.initialize(500, 0);
     //     // Create D and I filters
-    //     Filter D = Filter.DT(0);
-    //     Filter I = Filter.IT(0);
+    //     Filter D = Filter.Dt(0);
+    //     Filter I = Filter.It(0);
 
     //     // Create positions
     //     List<Double> positions = DoubleStream.iterate(0.0, d -> d < 20.0, d -> d + 1.0).boxed()
