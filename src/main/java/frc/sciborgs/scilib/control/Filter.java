@@ -6,9 +6,10 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.sciborgs.scilib.math.Counter;
 import frc.sciborgs.scilib.math.Delta;
-import frc.sciborgs.scilib.math.DeltaTime;
+import frc.sciborgs.scilib.math.DiffTimer;
 
 /**
  * Interface representing a transformation on a stream of doubles, and providing
@@ -75,6 +76,11 @@ public interface Filter {
         return value -> filter.calculate(value);
     }
 
+    static Filter positionProfile(TrapezoidProfile profile) {
+        DiffTimer time = new DiffTimer();
+        return _value -> profile.calculate(time.get()).position;
+    }
+
     /*
      * Operations on the filter.
      */
@@ -100,10 +106,10 @@ public interface Filter {
      * @param initialValue the starting value
      * @return a derivative filter
      */
-    static Filter DT(double initialValue) {
+    static Filter D_t(double initialValue) {
         Delta du = new Delta(initialValue);
-        DeltaTime dt = new DeltaTime();
-        return value -> du.update(value) / dt.update();
+        DiffTimer dt = new DiffTimer();
+        return value -> du.update(value) / dt.reset();
     }
 
     /**
@@ -111,10 +117,10 @@ public interface Filter {
      * @param initialValue the starting value
      * @return an integral filter
      */
-    static Filter IT(double initialValue) {
+    static Filter I_t(double initialValue) {
         Counter integrator = new Counter(initialValue);
-        DeltaTime dt = new DeltaTime();
-        return value -> integrator.increase(value * dt.update());
+        DiffTimer dt = new DiffTimer();
+        return value -> integrator.increase(value * dt.reset());
     }
 
 }

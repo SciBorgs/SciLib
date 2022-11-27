@@ -1,9 +1,16 @@
 package frc.sciborgs.scilib.config;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 
-public record PIDConfig(double kP, double kI, double kD) {
-    public static PIDController getPID(PIDConfig config) {
+public class PIDConfig {
+    private double kP;
+    private double kI;
+    private double kD;
+
+    private Constraints constraints;
+    
+    public PIDController getWPILIB(PIDConfig config) {
         return new PIDController(config.kP, config.kI, config.kD);
     }
 }
