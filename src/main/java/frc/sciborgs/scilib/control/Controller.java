@@ -2,9 +2,12 @@ package frc.sciborgs.scilib.control;
 
 import java.util.function.DoubleBinaryOperator;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+
 public abstract class Controller {
-    
-    private double allowableError;
 
     private Filter measuremenFilter;
     private Filter setpointFilter;
@@ -39,30 +42,31 @@ public abstract class Controller {
         };
     }
 
-    public static Controller getPID(double kP, double kI, double kD) {
-        Filter integral = Filter.It(0);
-        Filter derivative = Filter.Dt(0);
-        return from(
-                (measurement, setpoint) -> {
-                    double error = setpoint - measurement;
-                    return kP * error + kI * integral.calculate(error) + kD * derivative.calculate(error);
-                });
+    /*
+     * WPILib wrappers
+     */
+
+    public static Controller fromPID(PIDController pid) {
+        return Controller.from((measurement, setpoint) -> pid.calculate(measurement, setpoint)).setAllowableError(pid.getPositionTolerance());
     }
 
-    public static Controller getVelocityFF(double kS, double kV, double kA) {
-        Filter acceleration = Filter.Dt(0);
-        return from(
-                (measurement, _setpoint) -> {
-                    return kS * Math.signum(measurement) + kV * measurement + kA * acceleration.calculate(measurement);
-                });
-    }
-
-    public static Controller getPositionFF(double kS, double kV, double kA) {
+    public static Controller fromPositionFF(SimpleMotorFeedforward ff) {
         Filter velocity = Filter.Dt(0);
-        return from(
-                (measurement, _setpoint) -> {
-                    return kS * Math.signum(measurement) + kV * velocity.calculate(measurement);
-                });
+        return Controller.from((_measurement, setpoint) -> ff.calculate(velocity.calculate(setpoint)));
+    }
+
+    public static Controller fromVelocityFF(SimpleMotorFeedforward ff) {
+        Filter accel = Filter.Dt(0);
+        return Controller.from((_measurement, setpoint) -> ff.calculate(setpoint, accel.calculate(setpoint)));
+    }
+
+    // public static Controller fromREVPID() {
+
+    // }
+
+    public Controller setAllowableError(double allowableError) {
+        this.allowableError = allowableError;
+        return this;
     }
 
     public final double calculate(double measurement, double setpoint) {
@@ -110,7 +114,7 @@ public abstract class Controller {
     }
 
     public boolean atSetpoint() {
-        return Math.abs(setpoint) < allowableError;
+        return Math.abs(getError()) < allowableError;
     }
 
     public double getError() {

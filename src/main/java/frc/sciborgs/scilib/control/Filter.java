@@ -7,8 +7,6 @@ import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import frc.sciborgs.scilib.math.Counter;
-import frc.sciborgs.scilib.math.Delta;
 import frc.sciborgs.scilib.math.DiffTimer;
 
 /**
@@ -76,9 +74,12 @@ public interface Filter {
         return value -> filter.calculate(value);
     }
 
-    static Filter positionProfile(TrapezoidProfile profile) {
+    static Filter trapezoidalProfile() {
         DiffTimer time = new DiffTimer();
-        return _value -> profile.calculate(time.get()).position;
+        return value -> {
+            TrapezoidProfile profile = 
+            profile.calculate(time.get()).position;
+        };
     }
 
     /*
@@ -97,6 +98,10 @@ public interface Filter {
         return value -> MathUtil.applyDeadband(value, deadband);
     }
 
+    static Filter mod(double angle) {
+        return value -> MathUtil.angleModulus(value);
+    }
+
     default DoublePredicate eval(DoublePredicate predicate) {
         return value -> predicate.test(calculate(value));
     }
@@ -107,20 +112,33 @@ public interface Filter {
      * @return a derivative filter
      */
     static Filter Dt(double initialValue) {
-        Delta du = new Delta(initialValue);
-        DiffTimer dt = new DiffTimer();
-        return value -> du.update(value) / dt.reset();
+        return new Filter() {
+            private double last = initialValue;
+            DiffTimer dt = new DiffTimer();
+            @Override
+            public double calculate(double value) {
+                double delta = value - last;
+                last = value;
+                return delta / dt.reset();
+            }
+        };
     }
 
     /**
      * Creates an integral filter with respect to system time
-     * @param initialValue the starting value
+     * @param initialValue the starting integrator value
      * @return an integral filter
      */
     static Filter It(double initialValue) {
-        Counter integrator = new Counter(initialValue);
-        DiffTimer dt = new DiffTimer();
-        return value -> integrator.increase(value * dt.reset());
+        return new Filter() {
+            private double integrator = initialValue;
+            DiffTimer dt = new DiffTimer();
+            @Override
+            public double calculate(double value) {
+                integrator += value * dt.reset();
+                return integrator;
+            }
+        };
     }
 
 }

@@ -17,8 +17,7 @@ public static final PIDConfig flywheelFB = new PIDConfig(0.003, 0.001, 0);
 public static final FFConfig flywheelFF = new FFConfig(0.13419, 0.0017823, 0.00028074);
 
 // Shooter.java
-private final Controller<Velocity> flywheelController = Velocity.getPID(flywheelFB)
-        .add(Velocity.getFF(flywheelFF))
+private final Controller flywheelController = Constants.flywheelController.build()
         // don't actually filter the measurement of a flywheel, this will cause it to ramp slowly
         .filterMeasurement(Filter.fromLinearFilter(LinearFilter.movingAverage(10)));
 ```

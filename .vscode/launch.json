@@ -6,6 +6,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "Launch Elephant",
+      "request": "launch",
+      "mainClass": "frc.sciborgs.scilib.config.Elephant",
+      "projectName": "SciLib"
+    },
+    {
+      "type": "java",
       "name": "Launch Controller",
       "request": "launch",
       "mainClass": "frc.sciborgs.scilib.control.Controller",
