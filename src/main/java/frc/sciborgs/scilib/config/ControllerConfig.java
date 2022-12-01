@@ -1,35 +1,29 @@
 package frc.sciborgs.scilib.config;
 
-import java.util.ResourceBundle.Control;
-
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkMaxPIDController;
-import com.revrobotics.SparkMaxPIDController.AccelStrategy;
-
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
-import frc.sciborgs.scilib.control.Controller;
-import frc.sciborgs.scilib.control.Filter;
 
 public class ControllerConfig {
-    enum ControlType {
+
+    public enum ControlType {
         Position,
         Velocity,
         Angle,
     }
 
+    public enum MechanismType {
+        Motor,
+        Arm,
+        Elevator,
+    }
+
+    private double kP, kI, kD;
+    private double kS, kV, kA, kG, kCos;
+
     private ControlType controlType;
-
-    private double kP;
-    private double kI;
-    private double kD;
-
-    private double kS;
-    private double kV;
-    private double kA;
+    private MechanismType mechanismType;
 
     private Constraints constraints;
 
@@ -40,50 +34,79 @@ public class ControllerConfig {
     private double posTolerance;
     private double velTolerance;
 
-    private boolean wrap;
+    // FEEDFORWARD
 
-    public Controller configureController(Controller controller) {
-        
-    }
-
-    public PIDController getPID(PIDController pid) {
-        pid.setP(kP);
-        pid.setI(kI);
-        pid.setD(kD);
-        pid.setTolerance(posTolerance, velTolerance);
-        if (continuousInput) {
-            pid.enableContinuousInput(min, max);
+    public void setSimpleFF(double kS, double kV, double kA) {
+        if (mechanismType != null) {
+            throw new IllegalStateException("You already set FF");
         }
-        return pid;
+        mechanismType = MechanismType.Motor;
+
+        this.kS = kS;
+        this.kV = kV;
+        this.kA = kA;
     }
 
-    public Controller configureREVPID(CANSparkMax motorController) {
-        SparkMaxPIDController pid = motorController.getPIDController();
-        pid.setP(kP);
-        pid.setI(kI);
-        pid.setD(kD);
-
-        switch (controlType) {
-            case Velocity:
-                return Controller.from((measurement,
-                        setpoint) -> pid.setReference(setpoint, CANSparkMax.ControlType.kSmartVelocity, 0).value);
-            default:
-                return Controller.from((measurement,
-                        setpoint) -> pid.setReference(setpoint, CANSparkMax.ControlType.kPosition, 0).value);
+    public void setElevatorFF(double kS, double kV, double kA, double kG) {
+        if (mechanismType != null) {
+            throw new IllegalStateException("You already set FF");
         }
+        mechanismType = MechanismType.Elevator;
+
+        this.kS = kS;
+        this.kV = kV;
+        this.kA = kA;
+        this.kG = kG;
     }
 
-    public ProfiledPIDController getProfiledPID() {
-        ProfiledPIDController pid = new ProfiledPIDController(kP, kI, kD, constraints);
-        pid.setTolerance(posTolerance, velTolerance);
-        if (continuousInput) {
-            pid.enableContinuousInput(min, max);
+    public void setArmFF(double kS, double kV, double kA, double kCos) {
+        if (mechanismType != null) {
+            throw new IllegalStateException("You already set FF");
         }
-        return pid;
+        mechanismType = MechanismType.Arm;
+
+        this.kS = kS;
+        this.kV = kV;
+        this.kA = kA;
+        this.kCos = kCos;
     }
 
-    public SimpleMotorFeedforward getFF() {
+    public SimpleMotorFeedforward buildSimpleFF() {
+        if (mechanismType != MechanismType.Motor) {
+            throw new IllegalStateException("Not set to the correct mechanism type");
+        }
         return new SimpleMotorFeedforward(kS, kV, kA);
     }
 
+    public ArmFeedforward buildArmFF() {
+        if (mechanismType != MechanismType.Arm) {
+            throw new IllegalStateException("Not set to the correct mechanism type");
+        }
+        return new ArmFeedforward(kS, kCos, kV, kA);
+    }
+
+    public ElevatorFeedforward buildElevatorFeedforward() {
+        if (mechanismType != MechanismType.Elevator) {
+            throw new IllegalStateException("Not set to the correct mechanism type");
+        }
+        return new ElevatorFeedforward(kS, kG, kV, kA);
+    }
+
+    public void setConstraints(Constraints constraints) {
+        this.constraints = constraints;
+    }
+
+    // public void setConstraintsFromVelocity(double maxVoltage, double velocity) {
+    //     double accel = 0;
+    //     switch (mechanismType) {
+    //         case Motor:
+    //             accel = buildSimpleFF().maxAchievableAcceleration(maxVoltage, velocity);
+    //         case Arm:
+    //             accel = buildArmFF().maxAchievableAcceleration(maxVoltage, angle, velocity);
+    //         case Elevator:
+    //             accel = buildElevatorFeedforward().maxAchievableAcceleration(maxVoltage, velocity);
+    //         default:
+    //             throw new IllegalStateException("Not set to an ff model");
+    //     }
+    // }
 }

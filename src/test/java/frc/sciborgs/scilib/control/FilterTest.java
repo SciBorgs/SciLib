@@ -1,17 +1,6 @@
 package frc.sciborgs.scilib.control;
 
-import org.junit.jupiter.api.Test;
-
-import edu.wpi.first.hal.HAL;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.lang.System.Logger;
-import java.lang.System.Logger.Level;
-import java.util.List;
-import java.util.function.DoubleSupplier;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 
 class FilterTest {
     private static final Logger LOGGER = System.getLogger(FilterTest.class.getName());

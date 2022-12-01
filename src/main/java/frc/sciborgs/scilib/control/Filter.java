@@ -7,6 +7,8 @@ import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import frc.sciborgs.scilib.math.DiffTimer;
 
 /**
@@ -74,11 +76,11 @@ public interface Filter {
         return value -> filter.calculate(value);
     }
 
-    static Filter trapezoidalProfile() {
+    static Filter trapezoidalProfile(Constraints constraints) {
         DiffTimer time = new DiffTimer();
-        return value -> {
-            TrapezoidProfile profile = 
-            profile.calculate(time.get()).position;
+        TrapezoidProfile profile = new TrapezoidProfile(constraints, new State());
+        return setpoint -> {
+            return profile.calculate(time.get()).position;
         };
     }
 

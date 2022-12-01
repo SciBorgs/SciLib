@@ -2,12 +2,12 @@ package frc.sciborgs.scilib.control;
 
 import java.util.function.DoubleBinaryOperator;
 
-import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 
 public abstract class Controller {
+
+    private double allowableError;
 
     private Filter measuremenFilter;
     private Filter setpointFilter;
