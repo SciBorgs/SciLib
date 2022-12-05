@@ -9,7 +9,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
-import frc.sciborgs.scilib.math.DiffTimer;
+import frc.sciborgs.scilib.math.ElapsedTime;
 
 /**
  * Interface representing a transformation on a stream of doubles, and providing
@@ -77,7 +77,7 @@ public interface Filter {
     }
 
     static Filter trapezoidalProfile(Constraints constraints) {
-        DiffTimer time = new DiffTimer();
+        ElapsedTime time = new ElapsedTime();
         TrapezoidProfile profile = new TrapezoidProfile(constraints, new State());
         return setpoint -> {
             return profile.calculate(time.get()).position;
@@ -106,41 +106,6 @@ public interface Filter {
 
     default DoublePredicate eval(DoublePredicate predicate) {
         return value -> predicate.test(calculate(value));
-    }
-
-    /**
-     * Creates a derivative filter with respect to system time
-     * @param initialValue the starting value
-     * @return a derivative filter
-     */
-    static Filter Dt(double initialValue) {
-        return new Filter() {
-            private double last = initialValue;
-            DiffTimer dt = new DiffTimer();
-            @Override
-            public double calculate(double value) {
-                double delta = value - last;
-                last = value;
-                return delta / dt.reset();
-            }
-        };
-    }
-
-    /**
-     * Creates an integral filter with respect to system time
-     * @param initialValue the starting integrator value
-     * @return an integral filter
-     */
-    static Filter It(double initialValue) {
-        return new Filter() {
-            private double integrator = initialValue;
-            DiffTimer dt = new DiffTimer();
-            @Override
-            public double calculate(double value) {
-                integrator += value * dt.reset();
-                return integrator;
-            }
-        };
     }
 
 }

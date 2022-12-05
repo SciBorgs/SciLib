@@ -2,11 +2,11 @@ package frc.sciborgs.scilib.math;
 
 import edu.wpi.first.wpilibj.Timer;
 
-public class DiffTimer {
+public class ElapsedTime {
 
     private double start;
 
-    public DiffTimer() {
+    public ElapsedTime() {
         start = Timer.getFPGATimestamp();
     }
 
