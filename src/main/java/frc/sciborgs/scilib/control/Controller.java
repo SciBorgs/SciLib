@@ -6,7 +6,9 @@ public interface Controller {
 
     public double calculate(double setpoint, double measurement);
 
-    public boolean atSetpoint();
+    public default boolean atSetpoint() {
+        return true;
+    }
 
     public default Controller add(Controller other) {
         return op(other, (a, b) -> a + b);
@@ -22,7 +24,7 @@ public interface Controller {
 
             @Override
             public double calculate(double setpoint, double measurement) {
-                return op.applyAsDouble(setpoint, measurement);
+                return op.applyAsDouble(t.calculate(setpoint, measurement), other.calculate(setpoint, measurement));
             }
 
             @Override
