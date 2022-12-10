@@ -1,5 +1,7 @@
 package frc.sciborgs.scilib.control;
 
+import java.util.Objects;
+
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import frc.sciborgs.scilib.control.Measurement.Angle;
@@ -42,9 +44,7 @@ public class FFController<M extends Measurement> extends Controller<M> {
     
     @Override
     public double apply(double setpoint, double _measurement) {
-        Measurement.Type typeEnum = Measurement.getType(type);
-        if (typeEnum == null) throw new RuntimeException();
-        return switch (typeEnum) {
+        return switch (Objects.requireNonNull(Measurement.getType(type))) {
             case POSITION, ANGLE -> ff(derivative.calculate(setpoint), 0);
             case VELOCITY        -> ff(setpoint, derivative.calculate(setpoint));
         };
