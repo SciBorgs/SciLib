@@ -1,11 +1,10 @@
 package frc.sciborgs.scilib.control;
 
-import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import frc.sciborgs.scilib.math.Derivative;
 import frc.sciborgs.scilib.math.Integral;
 
-public class PIDController implements Controller, Sendable {
+public class PIDController extends Controller {
     private double setpoint, measurement, output;
     private double kp, ki, kd;
     private double xTolerance, dxTolerance; // eg. position and velocity, velocity and acceleration, etc
@@ -22,7 +21,7 @@ public class PIDController implements Controller, Sendable {
     }
 
     @Override
-    public double calculate(double setpoint, double measurement) {
+    public double apply(double setpoint, double measurement) {
         this.setpoint = setpoint;
         this.measurement = measurement;
         double error = setpoint - measurement;
