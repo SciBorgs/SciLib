@@ -1,13 +1,17 @@
 package frc.sciborgs.scilib.control;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ResourceBundle.Control;
 import java.util.function.DoubleBinaryOperator;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import frc.sciborgs.scilib.control.Measurement.Distance;
+import frc.sciborgs.scilib.control.Measurement.Type;
 
 public abstract class Controller<M extends Measurement> implements Sendable {
+
+    private Class<M> type;
 
     private double setpoint;
     private double measurement;
@@ -40,7 +44,14 @@ public abstract class Controller<M extends Measurement> implements Sendable {
         return true;
     }
 
-
+    public final Measurement.Type getType() {
+        try {
+            return type.getDeclaredConstructor().newInstance().type();
+        } catch (Exception e) {
+            System.err.println(e);
+            return Type.DISTANCE; // TODO safety
+        }
+    }
 
     public Controller<M> add(Controller<M> other) {
         return op(other, (a, b) -> a + b);

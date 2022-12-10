@@ -2,11 +2,12 @@ package frc.sciborgs.scilib.control;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import frc.sciborgs.scilib.control.Measurement.Angle;
 import frc.sciborgs.scilib.math.Derivative;
 import frc.sciborgs.scilib.math.Integral;
 
 public class FFController<M extends Measurement> extends Controller<M> {
-    
+
     private double ks, kv, ka;
     
     private Derivative derivative; // velocity or accel, depending on mode
@@ -37,12 +38,12 @@ public class FFController<M extends Measurement> extends Controller<M> {
     
     @Override
     public double apply(double setpoint, double _measurement) {
-        // switch (mode) {
-        //     case Position:
-        //         return ff(derivative.calculate(setpoint), 0);
-        //     case Velocity:
-        //         return ff(setpoint, derivative.calculate(setpoint));
-        // }
+        switch (getType()) {
+            case DISTANCE: case ANGLE:
+                return ff(derivative.calculate(setpoint), 0);
+            case VELOCITY:
+                return ff(setpoint, derivative.calculate(setpoint));
+        }
         return 0; // this should never happen
     }
 

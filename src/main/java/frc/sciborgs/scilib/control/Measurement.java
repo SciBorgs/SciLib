@@ -1,13 +1,42 @@
 package frc.sciborgs.scilib.control;
 
-public class Measurement {
+public abstract class Measurement {
 
     // java is crying: incredibly jank abuse of generics, polymorphism, and the type system
 
-    public static class Distance extends Measurement {}
-    
-    public static class Velocity extends Measurement {}
+    public enum Type {
+        DISTANCE,
+        VELOCITY,
+        ANGLE,
+    }
 
-    public static class Angle extends Measurement {}
+    public abstract Type type();
+
+    public static class Distance extends Measurement {
+        
+        @Override
+        public Type type() {
+            return Type.DISTANCE;
+        }
+
+    }
+    
+    public static class Velocity extends Measurement {
+
+        @Override
+        public Type type() {
+            return Type.VELOCITY;
+        }
+    
+    }
+
+    public static class Angle extends Measurement {
+
+        @Override
+        public Type type() {
+            return Type.ANGLE;
+        }
+    
+    }
 
 }
