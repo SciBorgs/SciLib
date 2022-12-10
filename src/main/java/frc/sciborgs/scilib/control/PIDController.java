@@ -4,14 +4,16 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import frc.sciborgs.scilib.math.Derivative;
 import frc.sciborgs.scilib.math.Integral;
 
-public class PIDController extends Controller {
+public class PIDController<M extends Measurement> extends Controller<M> {
     private double setpoint, measurement, output;
     private double kp, ki, kd;
     private double xTolerance, dxTolerance; // eg. position and velocity, velocity and acceleration, etc
     private final Derivative dError;
     private final Integral iError;
 
-    public PIDController(double kp, double ki, double kd) {
+    public PIDController(double kp, double ki, double kd, Class<M> type) {
+        super(type);
+
         this.kp = kp;
         this.ki = ki;
         this.kd = kd;

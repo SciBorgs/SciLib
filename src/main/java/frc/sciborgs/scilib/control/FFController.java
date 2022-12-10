@@ -3,6 +3,7 @@ package frc.sciborgs.scilib.control;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import frc.sciborgs.scilib.control.Measurement.Angle;
+import frc.sciborgs.scilib.control.Measurement.Position;
 import frc.sciborgs.scilib.math.Derivative;
 import frc.sciborgs.scilib.math.Integral;
 
@@ -12,15 +13,18 @@ public class FFController<M extends Measurement> extends Controller<M> {
     
     private Derivative derivative; // velocity or accel, depending on mode
 
-    public static <M extends Measurement> Controller<M> armFF(double ks, double kv, double ka, double kcos) {
-        return new FFController<M>(ks, kv, ka).add(new Arm<M>(kcos));
+    /* Look at those two yellow squiggly lines. That's what we have locked ourselves into */
+    public static <M extends Measurement> Controller<M> armFF(double ks, double kv, double ka, double kcos, Class<M> type) {
+        return new FFController<M>(ks, kv, ka, type).add((Controller<M>) new Arm(kcos));
     }
 
-    public static <M extends Measurement> Controller<M> elevatorFF(double ks, double kv, double ka, double kg) {
-        return new FFController<M>(ks, kv, ka).add(new Elevator<M>(kg));
+    public static <M extends Measurement> Controller<M> elevatorFF(double ks, double kv, double ka, double kg, Class<M> type) {
+        return new FFController<M>(ks, kv, ka, type).add((Controller<M>) new Elevator(kg));
     }
 
-    public FFController(double ks, double kv, double ka) {
+    public FFController(double ks, double kv, double ka, Class<M> type) {
+        super(type);
+
         this.ks = ks;
         this.kv = kv;
         this.ka = ka;
@@ -28,8 +32,8 @@ public class FFController<M extends Measurement> extends Controller<M> {
         derivative = new Derivative();
     }
 
-    public FFController(double ks, double kv) {
-        this(ks, kv, 0);
+    public FFController(double ks, double kv, Class<M> type) {
+        this(ks, kv, 0, type);
     }
 
     public double ff(double velocity, double acceleration) {
@@ -38,13 +42,12 @@ public class FFController<M extends Measurement> extends Controller<M> {
     
     @Override
     public double apply(double setpoint, double _measurement) {
-        switch (getType()) {
-            case DISTANCE: case ANGLE:
-                return ff(derivative.calculate(setpoint), 0);
-            case VELOCITY:
-                return ff(setpoint, derivative.calculate(setpoint));
-        }
-        return 0; // this should never happen
+        Measurement.Type typeEnum = Measurement.getType(type);
+        if (typeEnum == null) throw new RuntimeException();
+        return switch (typeEnum) {
+            case POSITION, ANGLE -> ff(derivative.calculate(setpoint), 0);
+            case VELOCITY        -> ff(setpoint, derivative.calculate(setpoint));
+        };
     }
 
     public double getS() {
@@ -80,12 +83,13 @@ public class FFController<M extends Measurement> extends Controller<M> {
 
 }
 
-class Arm<M extends Measurement> extends Controller<M> {
+class Arm extends Controller<Angle> {
 
     private double kcos;
     private Integral position;
 
     public Arm(double kcos) {
+        super(Angle.class);
         this.kcos = kcos;
         this.position = new Integral();
     }
@@ -110,11 +114,12 @@ class Arm<M extends Measurement> extends Controller<M> {
 
 }
 
-class Elevator<M extends Measurement> extends Controller<M> {
+class Elevator extends Controller<Position> {
 
     private double kg;
 
     public Elevator(double kg) {
+        super(Position.class);
         this.kg = kg;
     }
 

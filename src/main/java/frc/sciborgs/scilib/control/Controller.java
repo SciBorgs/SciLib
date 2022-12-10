@@ -1,18 +1,15 @@
 package frc.sciborgs.scilib.control;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ResourceBundle.Control;
 import java.util.function.DoubleBinaryOperator;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import frc.sciborgs.scilib.control.Measurement.Distance;
-import frc.sciborgs.scilib.control.Measurement.Type;
 
 public abstract class Controller<M extends Measurement> implements Sendable {
+    
+    protected Class<M> type;
 
-    private Class<M> type;
-
+    /* unnecessary instance variables? */
     private double setpoint;
     private double measurement;
     private double output;
@@ -21,7 +18,9 @@ public abstract class Controller<M extends Measurement> implements Sendable {
     private Filter measurementFilter;
     private Filter outputFilter;
 
-    public Controller() {
+    public Controller(Class<M> type) {
+        this.type = type;
+        
         setpoint = 0;
         measurement = 0;
         output = 0;
@@ -44,17 +43,8 @@ public abstract class Controller<M extends Measurement> implements Sendable {
         return true;
     }
 
-    public final Measurement.Type getType() {
-        try {
-            return type.getDeclaredConstructor().newInstance().type();
-        } catch (Exception e) {
-            System.err.println(e);
-            return Type.DISTANCE; // TODO safety
-        }
-    }
-
-    public Controller<M> add(Controller<M> other) {
-        return op(other, (a, b) -> a + b);
+    public Controller<M> add(Controller<M> elevator) {
+        return op(elevator, Double::sum);
     }
 
     public Controller<M> sub(Controller<M> other) {
@@ -62,22 +52,23 @@ public abstract class Controller<M extends Measurement> implements Sendable {
     }
 
     public Controller<M> op(Controller<M> other, DoubleBinaryOperator op) {
-        Controller<M> t = this;
-        return new Controller<M>() {
+        return new Controller<M>(this.type) {
 
             @Override
             public double apply(double setpoint, double measurement) {
-                return op.applyAsDouble(t.apply(setpoint, measurement), other.apply(setpoint, measurement));
+                return op.applyAsDouble(
+                    Controller.this.apply(setpoint, measurement), 
+                    other.apply(setpoint, measurement));
             }
 
             @Override
             public boolean atSetpoint() {
-                return t.atSetpoint() && other.atSetpoint();
+                return Controller.this.atSetpoint() && other.atSetpoint();
             }
 
             @Override
             public void initSendable(SendableBuilder builder) {
-                t.initSendable(builder);
+                Controller.this.initSendable(builder);
                 other.initSendable(builder);
             }
             
@@ -98,15 +89,15 @@ public abstract class Controller<M extends Measurement> implements Sendable {
     }
 
     public void addSetpointFilter(Filter filter) {
-        this.setpointFilter.andThen(filter);
+        this.setpointFilter = this.setpointFilter.andThen(filter);
     }
 
     public void addMeasurementFilter(Filter filter) {
-        this.measurementFilter.andThen(filter);
+        this.measurementFilter = this.measurementFilter.andThen(filter);
     }
 
     public void addOutputFilter(Filter filter) {
-        this.outputFilter.andThen(filter);
+        this.outputFilter = this.outputFilter.andThen(filter);
     }
 
 }
