@@ -1,11 +1,9 @@
 package frc.sciborgs.scilib.control;
 
-import java.util.Objects;
-
-import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import frc.sciborgs.scilib.control.Measurement.Angle;
 import frc.sciborgs.scilib.control.Measurement.Position;
+import frc.sciborgs.scilib.control.Measurement.Velocity;
 import frc.sciborgs.scilib.math.Derivative;
 import frc.sciborgs.scilib.math.Integral;
 
@@ -13,41 +11,42 @@ public class FFController<M extends Measurement> extends Controller<M> {
 
     private double ks, kv, ka;
     
-    private Derivative derivative; // velocity or accel, depending on mode
+    private Derivative accel;
 
-    /* Look at those two yellow squiggly lines. That's what we have locked ourselves into */
-    public static <M extends Measurement> Controller<M> armFF(double ks, double kv, double ka, double kcos, Class<M> type) {
-        return new FFController<M>(ks, kv, ka, type).add((Controller<M>) new Arm(kcos));
+    public static Controller<Position> position(double ks, double kv, double ka) {
+        return new FFController<Position>(ks, kv, ka).addSetpointFilter(new Derivative());
     }
 
-    public static <M extends Measurement> Controller<M> elevatorFF(double ks, double kv, double ka, double kg, Class<M> type) {
-        return new FFController<M>(ks, kv, ka, type).add((Controller<M>) new Elevator(kg));
+    public static Controller<Velocity> velocity(double ks, double kv, double ka) {
+        return new FFController<Velocity>(ks, kv, ka);
     }
 
-    public FFController(double ks, double kv, double ka, Class<M> type) {
-        super(type);
+    public static Controller<Angle> angle(double ks, double kv, double ka) {
+        return new FFController<Angle>(ks, kv, ka).addSetpointFilter(new Derivative());
+    }
 
+    public static Controller<Angle> armFF(double ks, double kv, double ka, double kcos) {
+        // arm is a position based controller, rather than an angle derivative (anglocity?) based controller
+        return new FFController<Angle>(ks, kv, ka).addSetpointFilter(new Derivative()).add(new Arm(kcos));
+    }
+
+    public static Controller<Position> elevatorFF(double ks, double kv, double ka, double kg) {
+        return new FFController<Position>(ks, kv, ka).add(new Elevator(kg)).addSetpointFilter(new Derivative());
+    }
+
+    public FFController(double ks, double kv, double ka) {
         this.ks = ks;
         this.kv = kv;
         this.ka = ka;
 
-        derivative = new Derivative();
-    }
-
-    public FFController(double ks, double kv, Class<M> type) {
-        this(ks, kv, 0, type);
-    }
-
-    public double ff(double velocity, double acceleration) {
-        return ks * Math.signum(velocity) + kv * velocity + ka * acceleration;
+        accel = new Derivative();
     }
     
     @Override
     public double apply(double setpoint, double _measurement) {
-        return switch (Objects.requireNonNull(Measurement.getType(type))) {
-            case POSITION, ANGLE -> ff(derivative.calculate(setpoint), 0);
-            case VELOCITY        -> ff(setpoint, derivative.calculate(setpoint));
-        };
+        // assuming setpoint is velocity
+        // position based ff is handled with a derivative setpointFilter
+        return ks * Math.signum(setpoint) + kv * setpoint + ka * accel.calculate(setpoint);
     }
 
     public double getS() {
@@ -89,7 +88,6 @@ class Arm extends Controller<Angle> {
     private Integral position;
 
     public Arm(double kcos) {
-        super(Angle.class);
         this.kcos = kcos;
         this.position = new Integral();
     }
@@ -119,7 +117,6 @@ class Elevator extends Controller<Position> {
     private double kg;
 
     public Elevator(double kg) {
-        super(Position.class);
         this.kg = kg;
     }
 

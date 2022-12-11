@@ -6,8 +6,6 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 
 public abstract class Controller<M extends Measurement> implements Sendable {
-    
-    protected Class<M> type;
 
     /* unnecessary instance variables? */
     private double setpoint;
@@ -18,9 +16,7 @@ public abstract class Controller<M extends Measurement> implements Sendable {
     private Filter measurementFilter;
     private Filter outputFilter;
 
-    public Controller(Class<M> type) {
-        this.type = type;
-        
+    public Controller() {
         setpoint = 0;
         measurement = 0;
         output = 0;
@@ -52,7 +48,7 @@ public abstract class Controller<M extends Measurement> implements Sendable {
     }
 
     public Controller<M> op(Controller<M> other, DoubleBinaryOperator op) {
-        return new Controller<M>(this.type) {
+        return new Controller<M>() {
 
             @Override
             public double apply(double setpoint, double measurement) {
@@ -75,29 +71,19 @@ public abstract class Controller<M extends Measurement> implements Sendable {
         };
     }
 
-
-    public void setSetpointFilter(Filter setpointFilter) {
-        this.setpointFilter = setpointFilter;
-    }
-
-    public void setMeasurementFilter(Filter measurementFilter) {
-        this.measurementFilter = measurementFilter;
-    }
-
-    public void setOutputFilter(Filter outputFilter) {
-        this.outputFilter = outputFilter;
-    }
-
-    public void addSetpointFilter(Filter filter) {
+    public Controller<M> addSetpointFilter(Filter filter) {
         this.setpointFilter = this.setpointFilter.andThen(filter);
+        return this;
     }
 
-    public void addMeasurementFilter(Filter filter) {
+    public Controller<M> addMeasurementFilter(Filter filter) {
         this.measurementFilter = this.measurementFilter.andThen(filter);
+        return this;
     }
 
-    public void addOutputFilter(Filter filter) {
+    public Controller<M> addOutputFilter(Filter filter) {
         this.outputFilter = this.outputFilter.andThen(filter);
+        return this;
     }
 
 }

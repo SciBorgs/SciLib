@@ -11,9 +11,7 @@ public class PIDController<M extends Measurement> extends Controller<M> {
     private final Derivative dError;
     private final Integral iError;
 
-    public PIDController(double kp, double ki, double kd, Class<M> type) {
-        super(type);
-
+    public PIDController(double kp, double ki, double kd) {
         this.kp = kp;
         this.ki = ki;
         this.kd = kd;
@@ -86,7 +84,7 @@ public class PIDController<M extends Measurement> extends Controller<M> {
         builder.addDoubleProperty("p", this::getP, this::setP);
         builder.addDoubleProperty("i", this::getI, this::setI);
         builder.addDoubleProperty("d", this::getD, this::setD);
-        builder.addDoubleProperty("setpoint", this::getSetpoint, this::setSetpoint);
+        // builder.addDoubleProperty("setpoint", this::getSetpoint, this::setSetpoint); // unexpected behavior when composed
     }
     
 }

@@ -1,6 +1,7 @@
 package frc.sciborgs.scilib.control;
 
 import java.util.function.DoublePredicate;
+import java.util.function.DoubleUnaryOperator;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
@@ -25,10 +26,6 @@ public interface Filter {
     static Filter identity() {
         return v -> v;
     }
-
-    /*
-     * Rename method from applyAsDouble to calculate
-     */
 
     double calculate(double value);
 
