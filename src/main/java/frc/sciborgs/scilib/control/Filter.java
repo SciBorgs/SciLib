@@ -1,7 +1,6 @@
 package frc.sciborgs.scilib.control;
 
 import java.util.function.DoublePredicate;
-import java.util.function.DoubleUnaryOperator;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
