@@ -2,8 +2,6 @@ package frc.sciborgs.scilib.config;
 
 import com.revrobotics.RelativeEncoder;
 
-import edu.wpi.first.wpilibj.Encoder;
-
 public class EncoderConfig {
     RelativeEncoder encoder;
     //if you wanna use the class only to configure existing encoders
