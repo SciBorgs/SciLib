@@ -9,8 +9,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 
 /**
- * MotorConfig is a builder class for standardization of vendor motor
- * controllers.
+ * MotorConfig is a builder class for standardizing vendor motor controllers.
  * 
  * <p>
  * Example usage for a CANSparkMax differential drive:
@@ -97,6 +96,7 @@ public final class MotorConfig {
      */
     public CANSparkMax getCanSparkMax(int id){
         var motor = new CANSparkMax(id, motorType.getREV());
+        motor.restoreFactoryDefaults();
         motor.setInverted(inverted);
         motor.setIdleMode(neutralBehavior.getREV());
         motor.setOpenLoopRampRate(openLoopRampRate);
@@ -107,6 +107,7 @@ public final class MotorConfig {
             pid.setI(pidConstants.ki());
             pid.setD(pidConstants.kd());
         }
+        motor.burnFlash();
         return motor;
     }
 
