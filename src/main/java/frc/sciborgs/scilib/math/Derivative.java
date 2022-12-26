@@ -2,34 +2,32 @@ package frc.sciborgs.scilib.math;
 
 import frc.sciborgs.scilib.control.Filter;
 
-/**
- * Derivative filter with respect to system time
- */
+/** Derivative filter with respect to system time */
 public class Derivative implements Filter {
 
-    private final ElapsedTime dt;
+  private final ElapsedTime dt;
 
-    private double last;
-    private double delta;
+  private double last;
+  private double delta;
 
-    public Derivative() {
-        this(0);
-    }
+  public Derivative() {
+    this(0);
+  }
 
-    public Derivative(double initialValue) {
-        dt = new ElapsedTime();
-        last = initialValue;
-        delta = 0;
-    }
+  public Derivative(double initialValue) {
+    dt = new ElapsedTime();
+    last = initialValue;
+    delta = 0;
+  }
 
-    @Override
-    public double calculate(double value) {
-        delta = value - last;
-        last = value;
-        return delta / dt.reset();
-    }
+  @Override
+  public double calculate(double value) {
+    delta = value - last;
+    last = value;
+    return delta / dt.reset();
+  }
 
-    public double get() {
-        return delta;
-    }
+  public double get() {
+    return delta;
+  }
 }
