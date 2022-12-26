@@ -66,7 +66,6 @@ public class FFController extends Controller {
 
   @Override
   public double apply(double setpoint, double _measurement) {
-    var x = new frc.sciborgs.scilib.control.Motor(1);
     // assuming setpoint is velocity
     // position based ff is handled with a derivative setpointFilter
     return ks * Math.signum(setpoint) + kv * setpoint + ka * accel.calculate(setpoint);
