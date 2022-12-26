@@ -5,161 +5,154 @@ import frc.sciborgs.scilib.math.Derivative;
 
 public class FFController extends Controller {
 
-    private double ks, kv, ka;
-    
-    private Derivative accel;
+  private double ks, kv, ka;
 
-    /**
-     * Position based ff, achieved by differentiating setpoint
-     * Do not use this alone, as it will result in massive voltage spikes.
-     * Instead, use with a motion profile.
-     * 
-     * @param ks
-     * @param kv
-     * @param ka
-     * @return A position based DC motor feedforward model
-     * 
-     * @see Profile
-     */
-    public static Controller position(double ks, double kv, double ka) {
-        return new FFController(ks, kv, ka).differentiateInputs();
-    }
+  private Derivative accel;
 
-    /**
-     * 
-     * @param ks
-     * @param kv
-     * @param ka
-     * @return A velocity based DC motor feedforward model
-     */
-    public static Controller velocity(double ks, double kv, double ka) {
-        return new FFController(ks, kv, ka);
-    }
+  /**
+   * Position based ff, achieved by differentiating setpoint Do not use this alone, as it will
+   * result in massive voltage spikes. Instead, use with a motion profile.
+   *
+   * @param ks
+   * @param kv
+   * @param ka
+   * @return A position based DC motor feedforward model
+   * @see Profile
+   */
+  public static Controller position(double ks, double kv, double ka) {
+    return new FFController(ks, kv, ka).differentiateInputs();
+  }
 
-    /**
-     * 
-     * @param ks
-     * @param kv
-     * @param ka
-     * @param kcos
-     * @return A position based arm feedforward implementation
-     */
-    public static Controller arm(double ks, double kv, double ka, double kcos) {
-        // this works because Arm is position based
-        return position(ks, kv, ka).add(new Arm(kcos));
-    }
+  /**
+   * @param ks
+   * @param kv
+   * @param ka
+   * @return A velocity based DC motor feedforward model
+   */
+  public static Controller velocity(double ks, double kv, double ka) {
+    return new FFController(ks, kv, ka);
+  }
 
-    /**
-     * 
-     * @param ks
-     * @param kv
-     * @param ka
-     * @param kg
-     * @return A position based elevator feedforward implementation
-     */
-    public static Controller elevator(double ks, double kv, double ka, double kg) {
-        return position(ks, kv, ka).add(new Elevator(kg));
-    }
+  /**
+   * @param ks
+   * @param kv
+   * @param ka
+   * @param kcos
+   * @return A position based arm feedforward implementation
+   */
+  public static Controller arm(double ks, double kv, double ka, double kcos) {
+    // this works because Arm is position based
+    return position(ks, kv, ka).add(new Arm(kcos));
+  }
 
-    public FFController(double ks, double kv, double ka) {
-        this.ks = ks;
-        this.kv = kv;
-        this.ka = ka;
+  /**
+   * @param ks
+   * @param kv
+   * @param ka
+   * @param kg
+   * @return A position based elevator feedforward implementation
+   */
+  public static Controller elevator(double ks, double kv, double ka, double kg) {
+    return position(ks, kv, ka).add(new Elevator(kg));
+  }
 
-        accel = new Derivative();
-    }
-    
-    @Override
-    public double apply(double setpoint, double _measurement) {
-        // assuming setpoint is velocity
-        // position based ff is handled with a derivative setpointFilter
-        return ks * Math.signum(setpoint) + kv * setpoint + ka * accel.calculate(setpoint);
-    }
+  public FFController(double ks, double kv, double ka) {
+    this.ks = ks;
+    this.kv = kv;
+    this.ka = ka;
 
-    public double getS() {
-        return ks;
-    }
+    accel = new Derivative();
+  }
 
-    public double getV() {
-        return kv;
-    }
+  @Override
+  public double apply(double setpoint, double _measurement) {
+    // assuming setpoint is velocity
+    // position based ff is handled with a derivative setpointFilter
+    return ks * Math.signum(setpoint) + kv * setpoint + ka * accel.calculate(setpoint);
+  }
 
-    public double getA() {
-        return ka;
-    }
+  public double getS() {
+    return ks;
+  }
 
-    public void setS(double ks) {
-        this.ks = ks;
-    }
+  public double getV() {
+    return kv;
+  }
 
-    public void setV(double kv) {
-        this.kv = kv;
-    }
+  public double getA() {
+    return ka;
+  }
 
-    public void setA(double ka) {
-        this.ka = ka;
-    }
+  public void setS(double ks) {
+    this.ks = ks;
+  }
 
-    @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.addDoubleProperty("s", this::getS, this::setS);
-        builder.addDoubleProperty("v", this::getV, this::setV);
-        builder.addDoubleProperty("a", this::getA, this::setA);
-    }
+  public void setV(double kv) {
+    this.kv = kv;
+  }
 
+  public void setA(double ka) {
+    this.ka = ka;
+  }
+
+  @Override
+  public void initSendable(SendableBuilder builder) {
+    builder.addDoubleProperty("s", this::getS, this::setS);
+    builder.addDoubleProperty("v", this::getV, this::setV);
+    builder.addDoubleProperty("a", this::getA, this::setA);
+  }
 }
 
 class Arm extends Controller {
 
-    private double kcos;
+  private double kcos;
 
-    public Arm(double kcos) {
-        this.kcos = kcos;
-    }
+  public Arm(double kcos) {
+    this.kcos = kcos;
+  }
 
-    public double getCos() {
-        return kcos;
-    }
+  public double getCos() {
+    return kcos;
+  }
 
-    public void setCos(double kcos) {
-        this.kcos = kcos;
-    }
+  public void setCos(double kcos) {
+    this.kcos = kcos;
+  }
 
-    @Override
-    public double apply(double position, double _measurement) {
-        return kcos * Math.cos(position);
-    }
+  @Override
+  public double apply(double position, double _measurement) {
+    return kcos * Math.cos(position);
+  }
 
-    @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.addDoubleProperty("cos", this::getCos, this::setCos);
-    }
-
+  @Override
+  public void initSendable(SendableBuilder builder) {
+    builder.addDoubleProperty("cos", this::getCos, this::setCos);
+  }
 }
 
 class Elevator extends Controller {
 
-    private double kg;
+  private double kg;
 
-    public Elevator(double kg) {
-        this.kg = kg;
-    }
+  public Elevator(double kg) {
+    this.kg = kg;
+  }
 
-    public double getG() {
-        return kg;
-    }
+  public double getG() {
+    return kg;
+  }
 
-    public void setG(double kg) {
-        this.kg = kg;
-    }
-    
-    @Override
-    public double apply(double _setpoint, double _measurement) {
-        return kg;
-    }
-    
-    @Override
-    public void initSendable(SendableBuilder builder) {
-        builder.addDoubleProperty("g", this::getG, this::setG);
-    }
+  public void setG(double kg) {
+    this.kg = kg;
+  }
+
+  @Override
+  public double apply(double _setpoint, double _measurement) {
+    return kg;
+  }
+
+  @Override
+  public void initSendable(SendableBuilder builder) {
+    builder.addDoubleProperty("g", this::getG, this::setG);
+  }
 }

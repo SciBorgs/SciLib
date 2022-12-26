@@ -4,19 +4,19 @@ import edu.wpi.first.wpilibj.Timer;
 
 public class ElapsedTime {
 
-    private double start;
+  private double start;
 
-    public ElapsedTime() {
-        start = Timer.getFPGATimestamp();
-    }
+  public ElapsedTime() {
+    start = Timer.getFPGATimestamp();
+  }
 
-    public double get() {
-        return Timer.getFPGATimestamp() - start;
-    }
+  public double get() {
+    return Timer.getFPGATimestamp() - start;
+  }
 
-    public double reset() {
-        double old = start;
-        start = Timer.getFPGATimestamp();
-        return old;
-    }
+  public double reset() {
+    double old = start;
+    start = Timer.getFPGATimestamp();
+    return old;
+  }
 }
