@@ -1,8 +1,11 @@
 package frc.sciborgs.scilib.config
 
+import com.ctre.phoenix.motorcontrol.NeutralMode
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX
 import com.revrobotics.CANSparkMax
-import com.revrobotics.CANSparkMaxLowLevel
 import com.revrobotics.CANSparkMaxLowLevel.MotorType
+import edu.wpi.first.wpilibj.drive.DifferentialDrive
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup
 
 /**
@@ -24,48 +27,40 @@ import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup
  */
 data class MotorConfig(
     var inverted: Boolean = false,
-    var motorType: MotorType,
     var neutralBehavior: NeutralBehavior = NeutralBehavior.COAST,
     var openLoopRampRate: Double = 0.0,
     var currentLimit: Int = 80,
     var pidConstants: PIDConstants? = null,
 ) {
 
-  enum class MotorType(val brushed: Boolean) {
-    BRUSHED(true),
-    BRUSHLESS(false);
-
-    fun getREV(): CANSparkMaxLowLevel.MotorType =
-        if (brushed) CANSparkMaxLowLevel.MotorType.kBrushed
-        else CANSparkMaxLowLevel.MotorType.kBrushless
-  }
-
-  enum class NeutralBehavior(val coast: Boolean) {
+  enum class NeutralBehavior(private val coast: Boolean) {
     COAST(true),
     BRAKE(false);
 
-    fun getREV(): CANSparkMax.IdleMode =
-        if (coast) CANSparkMax.IdleMode.kCoast else CANSparkMax.IdleMode.kBrake
+    fun rev() = if (coast) CANSparkMax.IdleMode.kCoast else CANSparkMax.IdleMode.kBrake
+
+    fun ctre() = if (coast) NeutralMode.Coast else NeutralMode.Brake
   }
 
+  // MOTOR BUILDERS
   /**
    * Creates a CANSparkMax based on configured values
    *
    * @param id the motor controller's device id
    * @return a new CANSparkMax object
    */
-  fun buildCanSparkMax(id: Int): CANSparkMax {
-    val motor = CANSparkMax(id, motorType.getREV())
+  fun buildCanSparkMax(id: Int, motorType: MotorType): CANSparkMax {
+    val motor = CANSparkMax(id, motorType)
     motor.restoreFactoryDefaults()
-    motor.setInverted(inverted)
-    motor.setIdleMode(neutralBehavior.getREV())
-    motor.setOpenLoopRampRate(openLoopRampRate)
+    motor.inverted = inverted
+    motor.idleMode = neutralBehavior.rev()
+    motor.openLoopRampRate = openLoopRampRate
     motor.setSmartCurrentLimit(currentLimit)
     pidConstants?.also {
-      val pid = motor.getPIDController()
-      pid.setP(it.kp)
-      pid.setI(it.ki)
-      pid.setD(it.kd)
+      val pid = motor.pidController
+      pid.p = it.kp
+      pid.i = it.ki
+      pid.d = it.kd
     }
     motor.burnFlash()
 
@@ -80,14 +75,40 @@ data class MotorConfig(
    * @param ids
    * @return array of CANSparkMax objects
    */
-  fun getCanSparkMaxArray(vararg ids: Int): Array<CANSparkMax> =
-      Array(ids.size) { buildCanSparkMax(it) }
+  fun buildCanSparkMax(vararg ids: Int, motorType: MotorType) =
+    Array(ids.size) { buildCanSparkMax(it, motorType) }
 
-  /**
-   * Creates a MotorControllerGroup from CANSparkMax objects based on their configured values.
-   *
-   * <p>Shorthand for MotorControllerGroup(getCanSparkMaxArray(ids))</p>
-   */
-  fun getCANSparkMaxMotorControllerGroup(vararg ids: Int) =
-      MotorControllerGroup(getCanSparkMaxArray(*ids))
+  fun buildTalonSRX(id: Int): WPI_TalonSRX {
+    val motor = WPI_TalonSRX(id)
+    motor.configFactoryDefault()
+    motor.inverted = this.inverted
+    motor.setNeutralMode(neutralBehavior.ctre())
+    motor.configOpenloopRamp(openLoopRampRate)
+    motor.configPeakCurrentLimit(currentLimit)
+    motor.enableCurrentLimit(true)
+    pidConstants?.also {
+      motor.config_kP(0, it.kp)
+      motor.config_kI(0, it.ki)
+      motor.config_kD(0, it.kd)
+    }
+    return motor
+  }
+
+  fun buildTalonSRX(vararg ids: Int) = Array(ids.size) { buildTalonSRX(it) }
+
+  fun buildTalonFX(id: Int): WPI_TalonFX {
+    val motor = WPI_TalonFX(id)
+    motor.configFactoryDefault()
+    motor.inverted = inverted
+    motor.setNeutralMode(neutralBehavior.ctre())
+    motor.configOpenloopRamp(openLoopRampRate)
+    pidConstants?.also {
+      motor.config_kP(0, it.kp)
+      motor.config_kI(0, it.ki)
+      motor.config_kD(0, it.kd)
+    }
+    return motor
+  }
+
+  fun buildTalonFX(vararg ids: Int) = Array(ids.size) { buildTalonFX(it) }
 }
