@@ -5,8 +5,6 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX
 import com.revrobotics.CANSparkMax
 import com.revrobotics.CANSparkMaxLowLevel.MotorType
-import edu.wpi.first.wpilibj.drive.DifferentialDrive
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup
 
 /**
  * MotorConfig is a builder class for standardizing vendor motor controllers.
@@ -76,7 +74,7 @@ data class MotorConfig(
    * @return array of CANSparkMax objects
    */
   fun buildCanSparkMax(vararg ids: Int, motorType: MotorType) =
-    Array(ids.size) { buildCanSparkMax(it, motorType) }
+      Array(ids.size) { buildCanSparkMax(it, motorType) }
 
   fun buildTalonSRX(id: Int): WPI_TalonSRX {
     val motor = WPI_TalonSRX(id)
