@@ -1,6 +1,6 @@
 package frc.sciborgs.scilib.math;
 
-import frc.sciborgs.scilib.control.Filter;
+import frc.sciborgs.scilib.filter.Filter;
 
 /** This is a right Riemann sum based on system time, not an integral */
 public class Integral implements Filter {

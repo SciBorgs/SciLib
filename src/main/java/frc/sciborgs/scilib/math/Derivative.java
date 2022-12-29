@@ -1,6 +1,6 @@
 package frc.sciborgs.scilib.math;
 
-import frc.sciborgs.scilib.control.Filter;
+import frc.sciborgs.scilib.filter.Filter;
 
 /** Derivative filter with respect to system time */
 public class Derivative implements Filter {

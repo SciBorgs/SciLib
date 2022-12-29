@@ -1,4 +1,4 @@
-package frc.sciborgs.scilib.control;
+package frc.sciborgs.scilib.filter;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -6,6 +6,7 @@ import frc.sciborgs.scilib.math.Derivative;
 import frc.sciborgs.scilib.math.Integral;
 import java.util.function.DoubleBinaryOperator;
 
+@Deprecated
 public abstract class Controller implements Sendable {
 
   private double setpoint, measurement, output;
