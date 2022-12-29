@@ -9,7 +9,7 @@ open class Filter(private val f: (Double) -> Double) : Sendable {
   companion object {
     fun identity() = Filter { x -> x }
 
-    fun linearFilter(filter: LinearFilter) = Filter { x -> filter.calculate(x) }
+    fun linearFilter(filter: LinearFilter) = Filter { filter.calculate(it) }
   }
 
   var last = 0.0
@@ -25,6 +25,15 @@ open class Filter(private val f: (Double) -> Double) : Sendable {
 
   fun aggregate(other: Filter, aggregator: (Double, Double) -> Double): Filter =
       AggregateFilter(this, other, aggregator)
+
+  // shorthand for conversion and then composing
+
+  fun compose(before: (Double) -> Double): Filter = compose(Filter(before))
+
+  fun andThen(after: (Double) -> Double): Filter = andThen(Filter(after))
+
+  fun aggregate(other: (Double) -> Double, aggregator: (Double, Double) -> Double): Filter =
+      aggregate(other, aggregator)
 
   override fun initSendable(builder: SendableBuilder) {
     builder.addDoubleProperty(this.toString(), this::last, null)
