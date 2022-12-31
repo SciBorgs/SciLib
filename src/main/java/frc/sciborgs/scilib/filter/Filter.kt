@@ -1,62 +1,79 @@
 package frc.sciborgs.scilib.filter
 
-import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.util.sendable.Sendable
 import edu.wpi.first.util.sendable.SendableBuilder
+import java.util.function.DoubleUnaryOperator
 
-open class Filter(private val f: (Double) -> Double) : Sendable {
+fun interface Filter : DoubleUnaryOperator {
 
-  companion object {
-    fun identity() = Filter { x -> x }
+  override fun applyAsDouble(operand: Double): Double = calculate(operand)
 
-    fun linearFilter(filter: LinearFilter) = Filter { filter.calculate(it) }
+  fun calculate(input: Double): Double
+
+  // compose
+
+  infix fun compose(before: Filter): Filter = Filter { calculate(before.calculate(it)) }
+
+  infix fun then(after: Filter): Filter = Filter { after.calculate(calculate(it)) }
+
+  // operate
+
+  fun operate(other: Filter, op: (Double, Double) -> Double): Filter = Filter {
+    op(calculate(it), other.calculate(it))
   }
 
-  var last = 0.0
+  operator fun plus(other: Filter) = operate(other) { a, b -> a + b }
 
-  fun calculate(value: Double): Double {
-    last = f(value)
-    return last
-  }
+  operator fun minus(other: Filter) = operate(other) { a, b -> a - b }
 
-  fun compose(before: Filter): Filter = ComposedFilter(before, this)
+  operator fun times(other: Filter) = operate(other) { a, b -> a * b }
 
-  fun andThen(after: Filter): Filter = ComposedFilter(this, after)
+  operator fun div(other: Filter) = operate(other) { a, b -> a / b }
 
-  fun aggregate(other: Filter, aggregator: (Double, Double) -> Double): Filter =
-      AggregateFilter(this, other, aggregator)
-
-  // shorthand for conversion and then composing
-
-  fun compose(before: (Double) -> Double): Filter = compose(Filter(before))
-
-  fun andThen(after: (Double) -> Double): Filter = andThen(Filter(after))
-
-  fun aggregate(other: (Double) -> Double, aggregator: (Double, Double) -> Double): Filter =
-      aggregate(other, aggregator)
-
-  override fun initSendable(builder: SendableBuilder) {
-    builder.addDoubleProperty(this.toString(), this::last, null)
-  }
+  fun cache(): CachedFilter = CachedFilter(this)
 }
 
-class ComposedFilter(private val before: Filter, private val after: Filter) :
-    Filter({ x -> after.calculate(before.calculate(x)) }) {
+open class CachedFilter(private val filter: Filter) : Filter, Sendable {
+
+  var out: Double = 0.0 // last output value
+    get
+
+  override fun calculate(input: Double): Double {
+    out = filter.calculate(input)
+    return out
+  }
+
+  override infix fun compose(before: Filter): Filter =
+      ComposedCachedFilter(before as CachedFilter, this)
+
+  override infix fun then(after: Filter): Filter = ComposedCachedFilter(this, after as CachedFilter)
+
+  override fun operate(other: Filter, op: (Double, Double) -> Double): Filter =
+      AggregateCachedFilter(this, other as CachedFilter, op)
+
+  override fun initSendable(builder: SendableBuilder) =
+      builder.addDoubleProperty(this.toString(), this::out, null)
+}
+
+private class ComposedCachedFilter(
+    private val before: CachedFilter,
+    private val after: CachedFilter,
+) : CachedFilter({ after.calculate(before.calculate(it)) }) {
 
   override fun initSendable(builder: SendableBuilder) {
     before.initSendable(builder)
-    builder.addDoubleProperty(this.toString(), this::last, null)
+    builder.addDoubleProperty(this.toString(), this::out, null)
   }
 }
 
-class AggregateFilter(
-    private val first: Filter,
-    private val second: Filter,
+private class AggregateCachedFilter(
+    private val first: CachedFilter,
+    private val second: CachedFilter,
     private val aggregator: (Double, Double) -> Double
-) : Filter({ x -> aggregator(first.calculate(x), second.calculate(x)) }) {
+) : CachedFilter({ aggregator(first.calculate(it), second.calculate(it)) }) {
   override fun initSendable(builder: SendableBuilder) {
     first.initSendable(builder)
     second.initSendable(builder)
-    builder.addDoubleProperty(this.toString(), this::last, null)
+    builder.addDoubleProperty(this.toString(), this::out, null)
   }
 }
