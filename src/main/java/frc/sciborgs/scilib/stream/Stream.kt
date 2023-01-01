@@ -16,6 +16,7 @@ fun interface Stream : DoubleSupplier {
   operator fun times(scalar: Double) = Stream { get() * scalar }
 
   operator fun div(scalar: Double) = Stream { get() / scalar }
+
   fun map(mapper: (Double) -> Double): Stream = Stream { mapper(get()) }
 }
 
