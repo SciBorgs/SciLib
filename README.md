@@ -6,19 +6,43 @@ SciLib is a library by FRC team 1155 intended for use with [WPILibJ](https://git
 
 *It is currently under development.*
 
-## Features
+## Project Scope
 
-SciLib deals with problems in the simplest way possible, so instead of wrapper classes, it uses functional interfaces and factories.
+italicized features may not be added
 
-## Example
+General
 
-```java
-// Constants.java
-public static final PIDConfig flywheelFB = new PIDConfig(0.003, 0.001, 0);
-public static final FFConfig flywheelFF = new FFConfig(0.13419, 0.0017823, 0.00028074);
+- [x] General motor builders
+- [ ] Stream api
+- [ ] *Vision wrappers*
 
-// Shooter.java
-private final Controller flywheelController = Constants.flywheelController.build()
-        // don't actually filter the measurement of a flywheel, this will cause it to ramp slowly
-        .filterMeasurement(Filter.fromLinearFilter(LinearFilter.movingAverage(10)));
+Kotlin specific
+
+- [ ] Units
+- [ ] *Coroutines in command based*
+
+## Motor Config Example
+
+```kotlin
+// Constants.kt
+object Ports {
+    const val flywheelLeft = 20
+    const val flywheelRight = 21
+}
+
+object Motors {
+    val shooter = MotorConfig(currentLimit = 20)
+}
+
+// Shooter.kt
+class Shooter : SubsystemBase() {
+
+    val lead = Motors.shooter.buildCanSparkMax(Ports.flywheelLeft, MotorType.kBrushless)
+    val follow = Motors.shooter.buildCanSparkMax(Ports.flywheelRight, MotorType.kBrushless)
+        // ...
+    init {
+        follow.follow(lead, true)
+    }
+        // ...
+}
 ```

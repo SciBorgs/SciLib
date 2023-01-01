@@ -1,4 +1,4 @@
-package frc.sciborgs.scilib.math
+package frc.sciborgs.scilib.util
 
 import edu.wpi.first.wpilibj.Timer
 
