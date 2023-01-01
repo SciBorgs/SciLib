@@ -2,6 +2,7 @@ package frc.sciborgs.scilib.filter
 
 import java.util.function.DoubleSupplier
 
+/** A Stream functional interface */
 fun interface Stream : DoubleSupplier {
 
   override fun getAsDouble() = get()
@@ -20,10 +21,5 @@ fun interface Stream : DoubleSupplier {
 
   operator fun div(other: Stream) = operate(other) { a, b -> a / b }
 
-  fun filter(filter: Filter = Filter { it }): FilteredStream = FilteredStream(this, filter)
-}
-
-class FilteredStream(private val stream: Stream, private val filter: Filter) : Stream {
-
-  override fun get(): Double = filter.calculate(stream.get())
+  fun map(mapper: (Double) -> Double = { it }): Stream = Stream { mapper(get()) }
 }

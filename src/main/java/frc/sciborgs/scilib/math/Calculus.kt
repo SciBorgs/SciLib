@@ -7,7 +7,8 @@ import frc.sciborgs.scilib.math.delta
 /** Derivative filter with respect to system time */
 class Derivative(var last: Double = 0.0) : Filter {
 
-  private var delta = 0.0
+  var delta = 0.0
+
   private val time = Timer()
 
   override fun calculate(input: Double): Double {

@@ -62,5 +62,23 @@ class StreamTest {
     assert(incStream.get() == 0.0)
     assert(incStream.get() == 10.0)
     assert(incStream.get() == 20.0)
+
+    val obj =
+        object {
+          val x = 11.55
+        }
+    val xStream = obj::x.stream()
+    assert(xStream.get() == 11.55)
+  }
+
+  @Test
+  fun composition() {
+    val f1 = Filter { it / 2 }
+    val f2 = Filter { it * 2 }
+    val f3 = f1 then f2
+    assert(f3.calculate(2.0) == 2.0)
+
+    val cleanThing = Stream { 2.0 }.filter { MathUtil.clamp(it, -1.0, 1.0) }
+    assert(cleanThing.get() == 1.0)
   }
 }
