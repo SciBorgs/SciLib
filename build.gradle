@@ -84,7 +84,7 @@ spotless {
         }
         eclipseWtp('xml')
         trimTrailingWhitespace()
-        indentWithSpaces(2)
+        indentWithSpaces(4)
         endWithNewline()
     }
     format 'misc', {
@@ -93,7 +93,7 @@ spotless {
             exclude '**/build/**', '**/build-*/**'
         }
         trimTrailingWhitespace()
-        indentWithSpaces(2)
+        indentWithSpaces(4)
         endWithNewline()
     }
 }
