@@ -9,19 +9,21 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType
 /**
  * MotorConfig is a builder class for standardizing vendor motor controllers.
  *
- * <p>Example usage for a CANSparkMax differential drive:
+ * ### Example usage for a CANSparkMax differential drive
  *
- * <pre><code> var leftMotor = new MotorConfig() .setNeutralBehavior(NeutralBehavior.BRAKE)
- * .setCurrentLimit(20);
+ * ```kotlin
+ * val leftMotor = MotorConfig(neutralBehavior = NeutralBehavior.BRAKE, currentLimit = 80)
+ * val rightMotor = leftMotor.copy(inverted = true)
  *
- * var rightMotor = new MotorConfig(leftMotor) .setInverted(true);
+ * val leftPorts = intArrayOf(1, 2, 3)
+ * val rightPorts = intArrayOf(4, 5, 6)
  *
- * int[] leftPorts = {1, 2, 3}; int[] rightPorts = {4, 5, 6};
+ * val leftGroup = MotorControllerGroup(leftMotor.buildCanSparkMax(*leftPorts, motorType = MotorType.kBrushless))
+ * val rightGroup = MotorControllerGroup(rightMotor.buildCanSparkMax(*rightPorts, motorType = MotorType.kBrushless))
+ * val driveTrain = DifferentialDrive(leftGroup, rightGroup)
+ * ```
  *
- * var leftGroup = new MotorControllerGroup(leftMotor.getCanSparkMax(leftPorts)); var rightGroup =
- * new MotorControllerGroup(rightMotor.getCanSparkMax(rightPorts));
- *
- * var driveTrain = new DifferentialDrive(leftGroup, rightGroup); </pre></code>
+ * @author Asa Paparo
  */
 data class MotorConfig(
     var inverted: Boolean = false,
@@ -31,20 +33,24 @@ data class MotorConfig(
     var pidConstants: PIDConstants? = null,
 ) {
 
+  /** Enum to represent a generic neutral behvavior */
   enum class NeutralBehavior(private val coast: Boolean) {
     COAST(true),
     BRAKE(false);
 
+    /** Gets the rev compatible neutral mode */
     fun rev() = if (coast) CANSparkMax.IdleMode.kCoast else CANSparkMax.IdleMode.kBrake
 
+    /** Gets the ctre compatible neutral mode */
     fun ctre() = if (coast) NeutralMode.Coast else NeutralMode.Brake
   }
 
-  // MOTOR BUILDERS
   /**
    * Creates a CANSparkMax based on configured values
    *
    * @param id the motor controller's device id
+   * @param motorType the [MotorType] of the physical motor ***This could break your motor if it is
+   * not set correctly***
    * @return a new CANSparkMax object
    */
   fun buildCanSparkMax(id: Int, motorType: MotorType): CANSparkMax {
@@ -66,17 +72,26 @@ data class MotorConfig(
   }
 
   /**
-   * Creates an array of CANSparkMax objects based on their configured values.
+   * Creates an array of CANSparkMax objects based on configured values.
    *
-   * <p>One motor controller will be created per id, in order</p>
+   * One motor controller will be created per id, in order
    *
-   * @param ids
+   * @param ids any number of motor ids
+   * @param motorType the [MotorType] of the physical motors ***This could break your motors if it
+   * is not set correctly***
    * @return array of CANSparkMax objects
    */
   fun buildCanSparkMax(vararg ids: Int, motorType: MotorType) =
       Array(ids.size) { buildCanSparkMax(it, motorType) }
 
-  fun buildTalonSRX(id: Int): WPI_TalonSRX {
+  /**
+   * Creates a TalonSRX based on configured values
+   *
+   * @param id the motor controller's device id
+   * @param pidSlot the pidSlot of the controller
+   * @return a new WPI_TalonSRX object
+   */
+  fun buildTalonSRX(id: Int, pidSlot: Int = 0): WPI_TalonSRX {
     val motor = WPI_TalonSRX(id)
     motor.configFactoryDefault()
     motor.inverted = this.inverted
@@ -85,28 +100,55 @@ data class MotorConfig(
     motor.configPeakCurrentLimit(currentLimit)
     motor.enableCurrentLimit(true)
     pidConstants?.also {
-      motor.config_kP(0, it.kp)
-      motor.config_kI(0, it.ki)
-      motor.config_kD(0, it.kd)
+      motor.config_kP(pidSlot, it.kp)
+      motor.config_kI(pidSlot, it.ki)
+      motor.config_kD(pidSlot, it.kd)
     }
     return motor
   }
 
-  fun buildTalonSRX(vararg ids: Int) = Array(ids.size) { buildTalonSRX(it) }
+  /**
+   * Creates an array of TalonSRX objects based on configured values
+   *
+   * One motor controller will be created per id, in order
+   *
+   * @param ids any number of motor ids
+   * @param pidSlot the pidSlot of the controller
+   * @return array of WPI_TalonSRX objects
+   */
+  fun buildTalonSRX(vararg ids: Int, pidSlot: Int = 0) =
+      Array(ids.size) { buildTalonSRX(it, pidSlot) }
 
-  fun buildTalonFX(id: Int): WPI_TalonFX {
+  /**
+   * Creates a TalonFX based on configured values
+   *
+   * @param id the motor controller's device id
+   * @param pidSlot the pidSlot of the controller
+   * @return a new WPI_TalonFX object
+   */
+  fun buildTalonFX(id: Int, pidSlot: Int = 0): WPI_TalonFX {
     val motor = WPI_TalonFX(id)
     motor.configFactoryDefault()
     motor.inverted = inverted
     motor.setNeutralMode(neutralBehavior.ctre())
     motor.configOpenloopRamp(openLoopRampRate)
     pidConstants?.also {
-      motor.config_kP(0, it.kp)
-      motor.config_kI(0, it.ki)
-      motor.config_kD(0, it.kd)
+      motor.config_kP(pidSlot, it.kp)
+      motor.config_kI(pidSlot, it.ki)
+      motor.config_kD(pidSlot, it.kd)
     }
     return motor
   }
 
-  fun buildTalonFX(vararg ids: Int) = Array(ids.size) { buildTalonFX(it) }
+  /**
+   * Creates an array of TalonFX objects based on configured values
+   *
+   * One motor controller will be created per id, in order
+   *
+   * @param ids any number of motor ids
+   * @param pidSlot the pidSlot of the controller
+   * @return array of WPI_TalonFX objects
+   */
+  fun buildTalonFX(vararg ids: Int, pidSlot: Int = 0) =
+      Array(ids.size) { buildTalonFX(it, pidSlot) }
 }
