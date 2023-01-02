@@ -64,7 +64,7 @@ class StreamTest {
   }
 
   @Test
-  fun SendableStreamTest() {
+  fun sendableStreamTest() {
     // SendableStreams should be further tested in robot sim
     val x = Inc().log().map { it * 2 } * 2.0
     assert(x is SendableStream)
