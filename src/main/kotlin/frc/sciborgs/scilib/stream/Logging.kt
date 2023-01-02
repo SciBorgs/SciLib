@@ -32,15 +32,21 @@ open class SendableStream(private val stream: Stream) : Stream, Sendable {
   override fun map(mapper: (Double) -> Double): SendableStream = CompositeStream(this, mapper)
 
   override operator fun plus(other: Stream): SendableStream =
-      AggregateStream(this, other as SendableStream)
+      AggregateStream(this, other as SendableStream) { a, b -> a + b }
 
   override operator fun minus(other: Stream): SendableStream =
-      AggregateStream(this, (-1.0 * other) as SendableStream)
+      AggregateStream(this, other as SendableStream) { a, b -> a - b }
 
   override operator fun times(scalar: Double): SendableStream =
       CompositeStream(this) { it * scalar }
 
+  override operator fun times(other: Stream): SendableStream =
+      AggregateStream(this, other as SendableStream) { a, b -> a * b }
+
   override operator fun div(scalar: Double): SendableStream = CompositeStream(this) { it / scalar }
+
+  override operator fun div(other: Stream): SendableStream =
+      AggregateStream(this, other as SendableStream) { a, b -> a / b }
 
   override fun initSendable(builder: SendableBuilder?) {
     builder?.addDoubleProperty(javaClass.simpleName, ::out, null)
@@ -81,7 +87,8 @@ private class CompositeStream(
 private class AggregateStream(
     private val first: SendableStream,
     private val second: SendableStream,
-) : SendableStream({ first.get() + second.get() }) {
+    private val operator: (Double, Double) -> Double,
+) : SendableStream({ operator(first.get(), second.get()) }) {
 
   override fun initSendable(builder: SendableBuilder?) {
     first.initSendable(builder)

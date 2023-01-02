@@ -4,7 +4,7 @@ Stream library for easy composition and logging, inspired by [StuyLib](https://g
 
 ## Summary
 
-`Stream` is a functional interface that supports `map`, a function to apply a `(Double) -> Double` function to its output, addition with other Streams and scalar multiplication. `Stream` is lazy, meaning it only runs calculations when `get` is called.
+`Stream` is a functional interface that supports `map`, a function to apply a `(Double) -> Double` function to its output, basic operations with other Streams, and scalar transformations. `Stream` is lazy, meaning it only runs calculations when `get` is called.
 
 `SendableStream` is a class that implements `Stream` and `Sendable`, allowing for its use in networktables. All mapping and operations done to `SendableStream` return a new `SendableStream` with a modified `initSendable` method to allow for logging intermediary values. It can be obtained from a `Stream` using the `log` method.
 

@@ -36,10 +36,14 @@ fun interface Stream : DoubleSupplier {
   fun get(): Double
 
   /**
-   * Addition operator between two [Streams][Stream]. Equivalent to:
+   * Addition operator between two [Streams][Stream].
+   *
+   * Equivalent to:
+   *
    * ```
-   * this.map { this.get() + it.get() }
+   * Stream { this.get() + other.get() }
    * ```
+   *
    * This operation is commutative.
    *
    * @param other the other addend
@@ -48,11 +52,15 @@ fun interface Stream : DoubleSupplier {
   operator fun plus(other: Stream) = Stream { get() + other.get() }
 
   /**
-   * Subtraction operator between two [Streams][Stream]. Equivalent to:
+   * Subtraction operator between two [Streams][Stream].
+   *
+   * Equivalent to:
+   *
    * ```
-   * this.map { this.get() - it.get() }
+   * Stream { this.get() - other.get() }
    * ```
-   * This operation is anti-commutative.
+   *
+   * This operation is noncommutative.
    *
    * @param other the subtrahend
    * @return a stream that [gets][get] the difference of this and [other]
@@ -60,10 +68,14 @@ fun interface Stream : DoubleSupplier {
   operator fun minus(other: Stream) = Stream { get() - other.get() }
 
   /**
-   * Scalar post-multiplication operator between a [scalar][Double] and a [Stream]. Equivalent to:
+   * Scalar post-multiplication operator between a [scalar][Double] and a [Stream].
+   *
+   * Equivalent to:
+   *
    * ```
-   * this.map { this.get() * scalar }
+   * Stream { this.get() * scalar }
    * ```
+   *
    * This operation is commutative.
    *
    * @param scalar the scalar double
@@ -72,10 +84,14 @@ fun interface Stream : DoubleSupplier {
   operator fun times(scalar: Double) = Stream { get() * scalar }
 
   /**
-   * Element-wise multiplication operator between two [Streams][Stream]. Equivalent to:
+   * Element-wise multiplication operator between two [Streams][Stream].
+   *
+   * Equivalent to:
+   *
    * ```
-   * this.map { this.get() * it.get() }
+   * Stream { this.get() * other.get() }
    * ```
+   *
    * This operation is commutative.
    *
    * @param other the stream on which to do element-wise multiplication with
@@ -84,10 +100,15 @@ fun interface Stream : DoubleSupplier {
   operator fun times(other: Stream) = Stream { get() * other.get() }
 
   /**
-   * Scalar division operator between a [scalar][Double] and a [Stream]. Equivalent to:
+   * Scalar division operator between a [scalar][Double] and a [Stream].
+   *
+   * Equivalent to:
+   *
    * ```
-   * this.map { this.get() / it.get() }
+   * Stream { this.get() / scalar }
    * ```
+   *
+   * This operation is noncommutative.
    *
    * @param scalar the scalar divisor
    * @return a stream that [gets][get] this scaled by 1/[scalar]
@@ -95,11 +116,15 @@ fun interface Stream : DoubleSupplier {
   operator fun div(scalar: Double) = Stream { get() / scalar }
 
   /**
-   * Element-wise division operator between two [Streams][Stream]. Equivalent to:
+   * Element-wise division operator between two [Streams][Stream].
+   *
+   * Equivalent to:
+   *
    * ```
-   * this.map { this.get() / it.get() }
+   * Stream { this.get() / other.get() }
    * ```
-   * This operation is commutative.
+   *
+   * This operation is noncommutative.
    *
    * @param other the stream on which to do element-wise division with
    * @return a stream that [gets][get] `this` divided by other.get()
@@ -118,7 +143,13 @@ fun interface Stream : DoubleSupplier {
 /**
  * Scalar pre-multiplication operator between a [scalar][Double] and a [Stream]
  *
- * Scalar pre-multiplication and post-multiplication are equivalent, but separate operator functions
+ * Equivalent to:
+ *
+ * ```
+ * Stream { this * stream.get() }
+ * ```
+ *
+ * This operation is commutative.
  *
  * @param stream the stream
  * @return a stream scaled by this
@@ -127,6 +158,14 @@ operator fun Double.times(stream: Stream) = Stream { this * stream.get() }
 
 /**
  * Scalar division operator between a [Stream] and a [scalar][Double]
+ *
+ * Equivalent to:
+ *
+ * ```
+ * Stream { this / stream.get() }
+ * ```
+ *
+ * This operation is noncommutative.
  *
  * @param stream the stream
  * @return a stream that [gets][get] this divided by the original value
