@@ -9,7 +9,7 @@ import java.util.function.DoubleSupplier
  *
  * Its abstract method is [get], which has the signature `() -> Double`
  *
- * Streams are lazy, meaning any calculations are ran when [get] is called.
+ * Streams are lazy, meaning any calculations are run when [get] is called.
  *
  * Streams can be modified using [map], which applies a `(Double) -> Double` function to the output
  * of the stream
@@ -22,29 +22,37 @@ import java.util.function.DoubleSupplier
 fun interface Stream : DoubleSupplier {
 
   /**
-   * Equivalent to [get]
+   * Equivalent to [get].
    *
    * @return the stream's output
    */
   override fun getAsDouble() = get()
 
   /**
-   * Gets the stream's output
+   * Gets the stream's output.
    *
-   * @return the output
+   * @return the stream's output
    */
   fun get(): Double
 
   /**
-   * Addition operator between two [Stream]
+   * Addition operator between two [Streams][Stream]. Equivalent to:
+   * ```
+   * this.map { this.get() + it.get() }
+   * ```
+   * This operation is commutative.
    *
    * @param other the other addend
-   * @return a stream that [gets][get] the sum of this and [other]
+   * @return a stream that [gets][get] the sum of `this` and [other]
    */
   operator fun plus(other: Stream) = Stream { get() + other.get() }
 
   /**
-   * Subtraction operator between two [Stream]
+   * Subtraction operator between two [Streams][Stream]. Equivalent to:
+   * ```
+   * this.map { this.get() - it.get() }
+   * ```
+   * This operation is anti-commutative.
    *
    * @param other the subtrahend
    * @return a stream that [gets][get] the difference of this and [other]
@@ -52,10 +60,11 @@ fun interface Stream : DoubleSupplier {
   operator fun minus(other: Stream) = Stream { get() - other.get() }
 
   /**
-   * Scalar post-multiplication operator between a [scalar][Double] and a [Stream]
-   *
-   * Scalar pre-multiplication and post-multiplication are equivalent, but separate operator
-   * functions
+   * Scalar post-multiplication operator between a [scalar][Double] and a [Stream]. Equivalent to:
+   * ```
+   * this.map { this.get() * scalar }
+   * ```
+   * This operation is commutative.
    *
    * @param scalar the scalar double
    * @return a stream that [gets][get] this scaled by [scalar]
@@ -63,12 +72,39 @@ fun interface Stream : DoubleSupplier {
   operator fun times(scalar: Double) = Stream { get() * scalar }
 
   /**
-   * Scalar division operator between a [scalar][Double] and a [Stream]
+   * Element-wise multiplication operator between two [Streams][Stream]. Equivalent to:
+   * ```
+   * this.map { this.get() * it.get() }
+   * ```
+   * This operation is commutative.
+   *
+   * @param other the stream on which to do element-wise multiplication with
+   * @return a stream that [gets][get] `this` scaled by other.get()
+   */
+  operator fun times(other: Stream) = Stream { get() * other.get() }
+
+  /**
+   * Scalar division operator between a [scalar][Double] and a [Stream]. Equivalent to:
+   * ```
+   * this.map { this.get() / it.get() }
+   * ```
    *
    * @param scalar the scalar divisor
    * @return a stream that [gets][get] this scaled by 1/[scalar]
    */
   operator fun div(scalar: Double) = Stream { get() / scalar }
+
+  /**
+   * Element-wise division operator between two [Streams][Stream]. Equivalent to:
+   * ```
+   * this.map { this.get() / it.get() }
+   * ```
+   * This operation is commutative.
+   *
+   * @param other the stream on which to do element-wise division with
+   * @return a stream that [gets][get] `this` divided by other.get()
+   */
+  operator fun div(other: Stream) = Stream { get() / other.get() }
 
   /**
    * Applies the provided function to the output of this [Stream]
