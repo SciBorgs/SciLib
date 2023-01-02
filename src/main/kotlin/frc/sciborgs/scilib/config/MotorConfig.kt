@@ -33,18 +33,6 @@ data class MotorConfig(
     var pidConstants: PIDConstants? = null,
 ) {
 
-  /** Enum to represent a generic neutral behvavior */
-  enum class NeutralBehavior(private val coast: Boolean) {
-    COAST(true),
-    BRAKE(false);
-
-    /** Gets the rev compatible neutral mode */
-    fun rev() = if (coast) CANSparkMax.IdleMode.kCoast else CANSparkMax.IdleMode.kBrake
-
-    /** Gets the ctre compatible neutral mode */
-    fun ctre() = if (coast) NeutralMode.Coast else NeutralMode.Brake
-  }
-
   /**
    * Creates a CANSparkMax based on configured values
    *
@@ -151,4 +139,16 @@ data class MotorConfig(
    */
   fun buildTalonFX(vararg ids: Int, pidSlot: Int = 0) =
       Array(ids.size) { buildTalonFX(it, pidSlot) }
+}
+
+/** Enum to represent a generic neutral behvavior */
+enum class NeutralBehavior(private val coast: Boolean) {
+  COAST(true),
+  BRAKE(false);
+
+  /** Gets the rev compatible neutral mode */
+  fun rev() = if (coast) CANSparkMax.IdleMode.kCoast else CANSparkMax.IdleMode.kBrake
+
+  /** Gets the ctre compatible neutral mode */
+  fun ctre() = if (coast) NeutralMode.Coast else NeutralMode.Brake
 }
