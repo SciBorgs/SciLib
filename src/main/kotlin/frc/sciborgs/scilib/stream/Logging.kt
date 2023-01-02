@@ -37,7 +37,8 @@ open class SendableStream(private val stream: Stream) : Stream, Sendable {
   override operator fun minus(other: Stream): SendableStream =
       AggregateStream(this, (-1.0 * other) as SendableStream)
 
-  override operator fun times(scalar: Double): SendableStream = CompositeStream(this) { it * scalar }
+  override operator fun times(scalar: Double): SendableStream =
+      CompositeStream(this) { it * scalar }
 
   override operator fun div(scalar: Double): SendableStream = CompositeStream(this) { it / scalar }
 
@@ -113,4 +114,5 @@ operator fun Double.times(stream: SendableStream): SendableStream =
  * @param stream the [SendableStream]
  * @return a [SendableStream] that [gets][get] this divided by the original value
  */
-operator fun Double.div(stream: SendableStream): SendableStream = CompositeStream(stream) { this / it }
+operator fun Double.div(stream: SendableStream): SendableStream =
+    CompositeStream(stream) { this / it }
